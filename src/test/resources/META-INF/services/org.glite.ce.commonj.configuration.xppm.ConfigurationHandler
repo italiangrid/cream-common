@@ -1,0 +1,5 @@
+org.glite.ce.commonj.configuration.xppm.test.TopLevelAttrsConfigHandler
+org.glite.ce.commonj.configuration.xppm.test.SimpleElementConfigHandler
+org.glite.ce.commonj.configuration.xppm.test.FailureElementConfigHandler
+org.glite.ce.commonj.configuration.xppm.test.TriggerElementConfigHandler
+

@@ -1,0 +1,192 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+    <groupId>org.glite.ce</groupId>
+    <artifactId>cream-parent</artifactId>
+    <version>1.15</version>
+  </parent>
+
+  <groupId>org.glite.ce.commonj</groupId>
+  <artifactId>glite-ce-common-java</artifactId>
+  <version>${common.java.version}</version>
+  <packaging>jar</packaging>
+
+  <build>
+    <plugins>
+      
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <index>true</index>
+            <manifest>
+              <addClasspath>true</addClasspath>
+            </manifest>
+            <manifestEntries>
+              <mode>development</mode>
+              <url>${project.url}</url>
+              <key>value</key>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.8.1</version>
+        <configuration>
+          <show>protected</show>
+          <nohelp>true</nohelp>
+        </configuration>
+      </plugin>
+
+      <!-- plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>etics-install</id>
+            <phase>install</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <target if="dist.location">
+                <mkdir dir="${dist.location}/usr/share/java"/>
+                <copy toDir="${dist.location}/usr/share/java">
+                  <fileset dir="target">
+                    <include name="*.jar" /> 
+                  </fileset>
+                </copy>
+                <mkdir dir="reports"/>
+                <copy toDir="reports">
+                  <fileset dir="target/surefire-reports">
+                    <include name="*.txt"/>
+                    <include name="*.xml"/>
+                  </fileset>
+                </copy>
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>etics-clean</id>
+            <phase>clean</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <target if="dist.location">
+                <delete dir="reports" />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin -->
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.12</version>
+        <configuration>
+          <systemPropertyVariables>
+            <xml.test.config.file>${project.build.directory}/myconfig.xml</xml.test.config.file>
+            <log4j.output.file>${project.build.directory}/testsuite.log</log4j.output.file>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+
+    </plugins>
+
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.glite.voms</groupId>
+      <artifactId>voms-api-java</artifactId>
+      <version>${voms.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glite.authz</groupId>
+      <artifactId>pep-common</artifactId>
+      <version>${pep.common.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glite.authz</groupId>
+      <artifactId>pep-java</artifactId>
+      <version>${pep.java.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>eu.eu-emi.security</groupId>
+      <artifactId>canl</artifactId>
+      <version>${canl.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glite.security</groupId>
+      <artifactId>trustmanager</artifactId>
+      <version>${trustman.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15</artifactId>
+      <version>${bcprov.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>tomcat</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>${servlet.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>${log4j.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.axis2</groupId>
+      <artifactId>axis2</artifactId>
+      <version>${axis2.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.neethi</groupId>
+      <artifactId>neethi</artifactId>
+      <version>${neethi.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+  </dependencies>
+
+</project>

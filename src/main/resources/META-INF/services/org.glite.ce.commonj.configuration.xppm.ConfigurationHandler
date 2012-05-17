@@ -1,0 +1,6 @@
+org.glite.ce.commonj.configuration.xppm.GlobalAttributeHandler
+org.glite.ce.commonj.authz.AdminConfigHandler
+org.glite.ce.commonj.authz.gjaf.GJAFConfigHandler
+org.glite.ce.commonj.authz.argus.ArgusConfigHandler
+org.glite.ce.commonj.db.DatasourceConfigHandler
+
