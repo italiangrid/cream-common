@@ -62,7 +62,8 @@ import org.glite.voms.VOMSAttribute;
 public class CEUtils {
     private static final Logger logger = Logger.getLogger(CEUtils.class);
 
-    public static synchronized File copyFile(String src, String dst) throws IOException {
+    public static synchronized File copyFile(String src, String dst)
+        throws IOException {
         File srcFile = new File(src);
         File dstFile = new File(dst);
 
@@ -112,7 +113,8 @@ public class CEUtils {
     public static List<String> getFQAN(String vo) {
         MessageContext messageContext = MessageContext.getCurrentMessageContext();
 
-        List<VOMSAttribute> vomsList = (List<VOMSAttribute>) messageContext.getProperty(AuthZConstants.USER_VOMSATTRS_LABEL);
+        List<VOMSAttribute> vomsList = (List<VOMSAttribute>) messageContext
+                .getProperty(AuthZConstants.USER_VOMSATTRS_LABEL);
         List<String> result = new ArrayList<String>(0);
 
         if (vomsList != null) {
@@ -141,7 +143,8 @@ public class CEUtils {
     }
 
     public static List<VOMSAttribute> getVOMSAttributes() {
-        return (List<VOMSAttribute>) MessageContext.getCurrentMessageContext().getProperty(AuthZConstants.USER_VOMSATTRS_LABEL);
+        return (List<VOMSAttribute>) MessageContext.getCurrentMessageContext().getProperty(
+                AuthZConstants.USER_VOMSATTRS_LABEL);
     }
 
     public static String getLocalUser() {
@@ -185,7 +188,8 @@ public class CEUtils {
             logProps.setProperty("log4j.appender.fileout.MaxFileSize", "500KB");
             logProps.setProperty("log4j.appender.fileout.MaxBackupIndex", "1");
             logProps.setProperty("log4j.appender.fileout.layout", "org.apache.log4j.PatternLayout");
-            logProps.setProperty("log4j.appender.fileout.layout.ConversionPattern", "%d{dd MMM yyyy HH:mm:ss,SSS} %c - %m%n");
+            logProps.setProperty("log4j.appender.fileout.layout.ConversionPattern",
+                    "%d{dd MMM yyyy HH:mm:ss,SSS} %c - %m%n");
 
         }
 
@@ -193,10 +197,11 @@ public class CEUtils {
     }
 
     public static Object getMessageContextProperty(String name) {
-        return name == null? null : MessageContext.getCurrentMessageContext().getProperty(name);
+        return name == null ? null : MessageContext.getCurrentMessageContext().getProperty(name);
     }
 
-    public static String getPEM(X509Certificate[] certChain) throws CertificateEncodingException {
+    public static String getPEM(X509Certificate[] certChain)
+        throws CertificateEncodingException {
         if (certChain == null) {
             return "";
         }
@@ -233,7 +238,8 @@ public class CEUtils {
     }
 
     public static X509Certificate[] getUserCertChain() {
-        return (X509Certificate[]) MessageContext.getCurrentMessageContext().getProperty(AuthZConstants.USER_CERTCHAIN_LABEL);
+        return (X509Certificate[]) MessageContext.getCurrentMessageContext().getProperty(
+                AuthZConstants.USER_CERTCHAIN_LABEL);
     }
 
     public static String getUserDefaultVO() {
@@ -261,7 +267,12 @@ public class CEUtils {
     }
 
     public static String getUserDN_X500() {
-        return (String) MessageContext.getCurrentMessageContext().getProperty(AuthZConstants.USERDN_X500_LABEL);
+        String dn = (String) MessageContext.getCurrentMessageContext().getProperty(AuthZConstants.USERDN_RFC2253_LABEL);
+        if (dn == null) {
+            return null;
+        }
+
+        return convertDNfromRFC2253(dn);
     }
 
     public static boolean isAdmin() {
@@ -274,7 +285,8 @@ public class CEUtils {
         return b.booleanValue();
     }
 
-    public static Object loadObject(String filename) throws IOException, ClassNotFoundException {
+    public static Object loadObject(String filename)
+        throws IOException, ClassNotFoundException {
         FileInputStream fis = new FileInputStream(filename);
         ObjectInputStream ois = new ObjectInputStream(fis);
         Object obj = ois.readObject();
@@ -284,7 +296,8 @@ public class CEUtils {
         return obj;
     }
 
-    public static synchronized File makeDir(String path) throws IOException {
+    public static synchronized File makeDir(String path)
+        throws IOException {
         File dir = null;
 
         if (path != null) {
@@ -296,7 +309,8 @@ public class CEUtils {
         return dir;
     }
 
-    public static void makeFile(File file, String message, boolean append, boolean lock) throws IOException, IllegalArgumentException {
+    public static void makeFile(File file, String message, boolean append, boolean lock)
+        throws IOException, IllegalArgumentException {
         if (file == null) {
             throw new IllegalArgumentException("file not specified!");
         }
@@ -379,7 +393,8 @@ public class CEUtils {
         }
     }
 
-    public static void makeFile(String filename, String message, boolean append, boolean lock) throws IOException, IllegalArgumentException {
+    public static void makeFile(String filename, String message, boolean append, boolean lock)
+        throws IOException, IllegalArgumentException {
         if (filename == null) {
             throw new IllegalArgumentException("filename not specified!");
         }
@@ -393,8 +408,9 @@ public class CEUtils {
         }
         return null;
     }
-    
-    public static String readFile(String filename) throws IOException {
+
+    public static String readFile(String filename)
+        throws IOException {
         String res = "";
 
         FileReader in = new FileReader(filename);
@@ -414,7 +430,8 @@ public class CEUtils {
         return res;
     }
 
-    public static synchronized void saveObject(String filename, Object obj) throws IOException {
+    public static synchronized void saveObject(String filename, Object obj)
+        throws IOException {
         FileOutputStream fos = new FileOutputStream(filename);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(obj);
@@ -439,19 +456,33 @@ public class CEUtils {
     }
 
     public static XMLGregorianCalendar getXMLGregorianCalendar(Calendar calendar) {
-    	XMLGregorianCalendar xmlGregorianCalendar = null;
+        XMLGregorianCalendar xmlGregorianCalendar = null;
 
-    	if (calendar != null) {
-    		GregorianCalendar gregorianCalendar = new GregorianCalendar();
-    		gregorianCalendar.setTimeInMillis(calendar.getTimeInMillis());
+        if (calendar != null) {
+            GregorianCalendar gregorianCalendar = new GregorianCalendar();
+            gregorianCalendar.setTimeInMillis(calendar.getTimeInMillis());
 
-    		try {
-    			xmlGregorianCalendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar);
-    		} catch (DatatypeConfigurationException ex) {
-    			logger.warn(ex.getMessage());
-    		}
-    	}
+            try {
+                xmlGregorianCalendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar);
+            } catch (DatatypeConfigurationException ex) {
+                logger.warn(ex.getMessage());
+            }
+        }
 
-    	return xmlGregorianCalendar;
+        return xmlGregorianCalendar;
+    }
+
+    public static String convertDNfromRFC2253(String dn) {
+        /*
+         * TODO to be implemented
+         */
+        throw new RuntimeException("To be implemented");
+    }
+
+    public static String convertDNtoRFC2253(String dn) {
+        /*
+         * TODO to be implemented
+         */
+        throw new RuntimeException("To be implemented");
     }
 }

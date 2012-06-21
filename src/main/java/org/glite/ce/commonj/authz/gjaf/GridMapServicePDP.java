@@ -28,18 +28,18 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.security.auth.Subject;
+import javax.security.auth.x500.X500Principal;
 import javax.xml.namespace.QName;
 
 import org.apache.log4j.Logger;
 import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
-import org.glite.security.util.X500Principal;
+import org.glite.ce.commonj.utils.CEUtils;
 
 public class GridMapServicePDP
     implements ServicePDP {
@@ -124,11 +124,12 @@ public class GridMapServicePDP
             for (String line = reader.readLine(); line != null; line = reader.readLine()) {
                 Matcher matcher = mapFilePattern.matcher(line);
                 if (matcher.matches()) {
-                    String oldValue = dnTable.put(matcher.group(1), matcher.group(2));
-                    if (oldValue != null) {
-                        logger.warn("Replaced value for " + matcher.group(1) + ": " + oldValue);
+                    String newDN = CEUtils.convertDNtoRFC2253(matcher.group(1));
+                    String oldDN = dnTable.put(newDN, matcher.group(2));
+                    if (oldDN != null) {
+                        logger.warn("Replaced value for " + newDN + ": " + oldDN);
                     }
-                    logger.debug("Registered DN: " + matcher.group(1) + "(" + this.hashCode() + ")");
+                    logger.debug("Registered DN: " + newDN);
                 }
             }
         } catch (IOException ioEx) {
@@ -151,16 +152,14 @@ public class GridMapServicePDP
 
         Set<X500Principal> pSet = peerSubject.getPrincipals(X500Principal.class);
         if (pSet == null) {
-            logger.warn("Cannot authorize: missing X500Principal in subject");
-            return NO_DECISION;
+            throw new AuthorizationException("Cannot retrieve credentials from the authorization layer");
         }
 
-        Iterator<X500Principal> allPrincipals = pSet.iterator();
-        while (allPrincipals.hasNext()) {
-            String identity = allPrincipals.next().getName();
+        for (X500Principal principal : pSet) {
+            String identity = principal.getName();
             logger.debug("Checking identity: " + identity);
             if (dnTable.get(identity) != null) {
-                logger.info("Identity authorized: " + identity + "(" + this.hashCode() + ")");
+                logger.info("Identity authorized: " + identity);
                 return STRONG_ALLOWED;
             }
         }

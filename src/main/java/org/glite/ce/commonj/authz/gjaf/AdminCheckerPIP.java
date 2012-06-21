@@ -27,17 +27,18 @@ package org.glite.ce.commonj.authz.gjaf;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.security.Principal;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.security.auth.Subject;
+import javax.security.auth.x500.X500Principal;
 import javax.xml.namespace.QName;
 
 import org.apache.log4j.Logger;
 import org.glite.ce.commonj.authz.AuthZConstants;
 import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
+import org.glite.ce.commonj.utils.CEUtils;
 
 public class AdminCheckerPIP
     implements ServicePIP {
@@ -134,7 +135,7 @@ public class AdminCheckerPIP
                 if (line.length() > 0 && !line.startsWith("#")) {
                     if (line.startsWith("\"") && line.endsWith("\""))
                         line = line.substring(1, line.length() - 1);
-                    dnTable.add(line);
+                    dnTable.add(CEUtils.convertDNtoRFC2253(line));
                     logger.debug("Registered DN: " + line);
                 }
                 line = reader.readLine();
@@ -156,30 +157,24 @@ public class AdminCheckerPIP
     public void collectAttributes(Subject peerSubject, ServiceAuthorizationInterface.MessageContext context,
             QName operation)
         throws AuthorizationException {
-        String dn = null;
-        try {
-            dn = (String) context.getProperty(AuthZConstants.USERDN_X500_LABEL);
-        } catch (ClassCastException ccEx) {
-            logger.error(ccEx.getMessage());
+
+        Set<X500Principal> pSet = peerSubject.getPrincipals(X500Principal.class);
+        if (pSet == null) {
+            throw new AuthorizationException("Cannot retrieve credentials from the authorization layer");
         }
-        if (dn == null) {
-            logger.debug("USERDN_X500_LABEL undefined in context");
-            Set set = peerSubject.getPrincipals();
-            if ((set == null) || (set.size() < 1)) {
-                throw new AuthorizationException("Cannot retrieve principals from subject");
+
+        context.setProperty(AuthZConstants.IS_ADMIN, new Boolean(false));
+
+        for (X500Principal principal : pSet) {
+            String identity = principal.getName();
+            if (dnTable.contains(identity)) {
+                logger.info("Admin test for " + identity + ":  true");
+                context.setProperty(AuthZConstants.IS_ADMIN, new Boolean(true));
+            } else {
+                logger.debug("Admin test for " + identity + ":  false");
             }
-            dn = ((Principal) set.iterator().next()).getName();
-        }
-        if (dn == null) {
-            logger.error("Cannot retrieve user DN");
-            throw new AuthorizationException("Cannot retrieve user DN");
         }
 
-        Boolean isAdmin = new Boolean(dnTable.contains(dn));
-
-        logger.debug("Admin test for " + dn + ": " + isAdmin);
-
-        context.setProperty(AuthZConstants.IS_ADMIN, isAdmin);
     }
 
     public void close()
