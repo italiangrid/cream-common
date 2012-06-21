@@ -39,7 +39,8 @@ import javax.xml.namespace.QName;
 import org.apache.log4j.Logger;
 import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
-import org.glite.ce.commonj.utils.CEUtils;
+
+import eu.emi.security.authn.x509.helpers.CertificateHelpers;
 
 public class GridMapServicePDP
     implements ServicePDP {
@@ -124,7 +125,7 @@ public class GridMapServicePDP
             for (String line = reader.readLine(); line != null; line = reader.readLine()) {
                 Matcher matcher = mapFilePattern.matcher(line);
                 if (matcher.matches()) {
-                    String newDN = CEUtils.convertDNtoRFC2253(matcher.group(1));
+                    String newDN = CertificateHelpers.opensslToRfc2253(matcher.group(1), false);
                     String oldDN = dnTable.put(newDN, matcher.group(2));
                     if (oldDN != null) {
                         logger.warn("Replaced value for " + newDN + ": " + oldDN);

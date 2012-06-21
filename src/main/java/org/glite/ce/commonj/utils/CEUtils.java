@@ -479,10 +479,4 @@ public class CEUtils {
         throw new RuntimeException("To be implemented");
     }
 
-    public static String convertDNtoRFC2253(String dn) {
-        /*
-         * TODO to be implemented
-         */
-        throw new RuntimeException("To be implemented");
-    }
 }

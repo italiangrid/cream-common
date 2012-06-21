@@ -38,7 +38,8 @@ import org.apache.log4j.Logger;
 import org.glite.ce.commonj.authz.AuthZConstants;
 import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
-import org.glite.ce.commonj.utils.CEUtils;
+
+import eu.emi.security.authn.x509.helpers.CertificateHelpers;
 
 public class AdminCheckerPIP
     implements ServicePIP {
@@ -135,7 +136,7 @@ public class AdminCheckerPIP
                 if (line.length() > 0 && !line.startsWith("#")) {
                     if (line.startsWith("\"") && line.endsWith("\""))
                         line = line.substring(1, line.length() - 1);
-                    dnTable.add(CEUtils.convertDNtoRFC2253(line));
+                    dnTable.add(CertificateHelpers.opensslToRfc2253(line, false));
                     logger.debug("Registered DN: " + line);
                 }
                 line = reader.readLine();

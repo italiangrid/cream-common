@@ -44,6 +44,8 @@ import org.glite.voms.VOMSAttribute;
 import org.glite.voms.VOMSValidator;
 import org.glite.voms.ac.ACValidator;
 
+import eu.emi.security.authn.x509.proxy.ProxyUtils;
+
 public abstract class AuthorizationHandler
     extends AbstractHandler {
 
@@ -75,12 +77,11 @@ public abstract class AuthorizationHandler
 
         X509Certificate[] userCertChain = (X509Certificate[]) request
                 .getAttribute("javax.servlet.request.X509Certificate");
-        /*
-         * TODO verify version of canl: missing method
-         */
-        // X509Certificate userCert =
-        // CertificateUtils.getEndUserCertificate(userCertChain);
-        X509Certificate userCert = null;
+
+        X509Certificate userCert = ProxyUtils.getEndUserCertificate(userCertChain);
+        if (userCert == null) {
+            throw getAuthorizationFault("Corrupted credentials", msgContext);
+        }
         String remoteAddress = request.getRemoteAddr();
 
         String dnRFC2253 = userCert.getSubjectX500Principal().getName();
