@@ -39,8 +39,6 @@ import org.glite.ce.commonj.authz.AuthZConstants;
 import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
 import org.glite.ce.commonj.configuration.CommonServiceConfig;
-import org.glite.security.SecurityContext;
-import org.glite.security.util.DN;
 import org.glite.voms.FQAN;
 import org.glite.voms.VOMSAttribute;
 import org.glite.voms.VOMSValidator;
@@ -58,22 +56,42 @@ public abstract class AuthorizationHandler
     public Handler.InvocationResponse invoke(MessageContext msgContext)
         throws AxisFault {
 
-        SecurityContext secInfo = getSecurityContext(msgContext);
+        Object requestProperty = msgContext.getProperty(HTTPConstants.MC_HTTP_SERVLETREQUEST);
+        if (requestProperty == null || !(requestProperty instanceof HttpServletRequest)) {
+            throw getAuthorizationFault("Cannot retrieve credentials", msgContext);
+        }
 
-        String dnRFC2253 = secInfo.getClientDN().getRFCDNv2();
-        String dnX500 = secInfo.getClientX500Name();
+        HttpServletRequest request = (HttpServletRequest) requestProperty;
+        try {
+            /*
+             * trigger the initialization of the certificate stuff in request
+             */
+            String keySize = (String) request.getAttribute("javax.servlet.request.key_size");
+            String sslId = (String) request.getAttribute("javax.servlet.request.ssl_session");
+            logger.debug("Parsing HTTP request: " + sslId + ":" + keySize);
+        } catch (Throwable th) {
+            throw getAuthorizationFault("Cannot parse HTTP request", msgContext);
+        }
+
+        X509Certificate[] userCertChain = (X509Certificate[]) request
+                .getAttribute("javax.servlet.request.X509Certificate");
+        /*
+         * TODO verify version of canl: missing method
+         */
+        // X509Certificate userCert =
+        // CertificateUtils.getEndUserCertificate(userCertChain);
+        X509Certificate userCert = null;
+        String remoteAddress = request.getRemoteAddr();
+
+        String dnRFC2253 = userCert.getSubjectX500Principal().getName();
 
         Subject subject = new Subject();
-        subject.getPrincipals().add(secInfo.getClientX500Principal());
-        subject.getPrincipals().add(new javax.security.auth.x500.X500Principal(dnRFC2253));
-
-        msgContext.setProperty(AuthZConstants.USERDN_X500_LABEL, dnX500);
-        msgContext.setProperty(AuthZConstants.USERDN_RFC2253_LABEL, dnRFC2253);
-        msgContext.setProperty(AuthZConstants.USER_CERT_LABEL, secInfo.getClientCert());
-
-        X509Certificate[] userCertChain = secInfo.getClientCertChain();
-        msgContext.setProperty(AuthZConstants.USER_CERTCHAIN_LABEL, userCertChain);
+        subject.getPrincipals().add(userCert.getSubjectX500Principal());
         subject.getPublicCredentials().add(userCertChain);
+
+        msgContext.setProperty(AuthZConstants.USERDN_RFC2253_LABEL, dnRFC2253);
+        msgContext.setProperty(AuthZConstants.USER_CERT_LABEL, userCert);
+        msgContext.setProperty(AuthZConstants.USER_CERTCHAIN_LABEL, userCertChain);
 
         ACValidator acValidator = AuthorizationModule.getACValidator();
         VOMSValidator mainValidator = new VOMSValidator(userCertChain, acValidator);
@@ -87,7 +105,6 @@ public abstract class AuthorizationHandler
             msgContext.setProperty(AuthZConstants.USER_VO_LABEL, attr.getAC().getVO());
         }
 
-        String remoteAddress = secInfo.getRemoteAddr();
         msgContext.setProperty(AuthZConstants.REMOTE_REQUEST_ADDRESS, remoteAddress);
 
         QName operation = this.getOperation(msgContext);
@@ -103,8 +120,8 @@ public abstract class AuthorizationHandler
 
         AdminTable table = commonConfig.getAdminTable();
         if (table != null) {
-            Boolean isAdmin = new Boolean(table.contains(dnX500));
-            logger.debug("Admin test for " + dnX500 + ": " + isAdmin);
+            Boolean isAdmin = new Boolean(table.contains(dnRFC2253));
+            logger.debug("Admin test for " + dnRFC2253 + ": " + isAdmin);
 
             msgContext.setProperty(AuthZConstants.IS_ADMIN, isAdmin);
         }
@@ -171,49 +188,6 @@ public abstract class AuthorizationHandler
         }
 
         return buffer.toString();
-    }
-
-    private SecurityContext getSecurityContext(MessageContext msgContext)
-        throws AxisFault {
-
-        /*
-         * This code is a customization of the method provided by
-         * org.glite.security.util.axis.InitSecurityContext
-         */
-        SecurityContext result = new SecurityContext();
-
-        Object requestProperty = msgContext.getProperty(HTTPConstants.MC_HTTP_SERVLETREQUEST);
-        if (requestProperty != null && requestProperty instanceof HttpServletRequest) {
-
-            HttpServletRequest request = (HttpServletRequest) requestProperty;
-
-            try {
-                X509Certificate[] certChain = (X509Certificate[]) request
-                        .getAttribute("javax.servlet.request.X509Certificate");
-                result.setClientCertChain(certChain);
-                result.setRemoteAddr(request.getRemoteAddr());
-
-                // trigger the initialization of the certificate stuff in
-                // request.
-                request.getAttribute("javax.servlet.request.key_size");
-
-                String sslId = (String) request.getAttribute("javax.servlet.request.ssl_session");
-                result.setSessionId(sslId);
-            } catch (Throwable th) {
-                logger.error(th.getMessage(), th);
-            }
-
-            DN clientDN = result.getClientDN();
-            String dnX500 = result.getClientX500Name();
-            if (clientDN == null || dnX500 == null || dnX500.equals("")) {
-                throw getAuthorizationFault("Cannot retrieve credentials", msgContext);
-            }
-
-        } else {
-            throw getAuthorizationFault("Cannot retrieve credentials", msgContext);
-        }
-
-        return result;
     }
 
     public class MessageContextWrapper

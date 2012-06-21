@@ -28,16 +28,16 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import javax.security.auth.Subject;
+import javax.security.auth.x500.X500Principal;
 import javax.xml.namespace.QName;
 
 import org.apache.log4j.Logger;
 import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
-import org.glite.security.util.X500Principal;
+import org.glite.ce.commonj.utils.CEUtils;
 
 public class BlackListServicePDP
     implements ServicePDP {
@@ -127,7 +127,7 @@ public class BlackListServicePDP
                         line = line.substring(1);
                     if (line.endsWith("\""))
                         line = line.substring(0, line.length() - 1);
-                    dnTable.add(line);
+                    dnTable.add(CEUtils.convertDNtoRFC2253(line));
                     logger.debug("Registered DN: " + line);
                 }
                 line = reader.readLine();
@@ -152,13 +152,11 @@ public class BlackListServicePDP
 
         Set<X500Principal> pSet = peerSubject.getPrincipals(X500Principal.class);
         if (pSet == null) {
-            logger.warn("Cannot authorize: missing X500Principal in subject");
-            return NO_DECISION;
+            throw new AuthorizationException("Cannot retrieve credentials from the authorization layer");
         }
 
-        Iterator<X500Principal> allPrincipals = pSet.iterator();
-        while (allPrincipals.hasNext()) {
-            String identity = allPrincipals.next().getName();
+        for (X500Principal principal : pSet) {
+            String identity = principal.getName();
             logger.debug("Checking identity: " + identity);
             if (dnTable.contains(identity)) {
                 logger.info("Identity banned: " + identity);
@@ -167,6 +165,7 @@ public class BlackListServicePDP
         }
 
         return NO_DECISION;
+
     }
 
     public void close()

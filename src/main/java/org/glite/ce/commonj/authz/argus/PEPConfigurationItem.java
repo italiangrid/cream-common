@@ -24,10 +24,10 @@
 
 package org.glite.ce.commonj.authz.argus;
 
+import java.io.ByteArrayInputStream;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.Vector;
 
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
@@ -40,10 +40,11 @@ import org.glite.authz.pep.client.config.PEPClientConfigurationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationFactory;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
 import org.glite.ce.commonj.configuration.CEConfigResource;
-import org.glite.security.util.FileCertReader;
 import org.glite.voms.PKIStore;
 import org.glite.voms.PKIStoreFactory;
 import org.glite.voms.VOMSTrustManager;
+
+import eu.emi.security.authn.x509.impl.CertificateUtils;
 
 public class PEPConfigurationItem
     extends PEPClientConfiguration
@@ -106,10 +107,12 @@ public class PEPConfigurationItem
         try {
             PEMFileReader reader = new PEMFileReader();
             PrivateKey pkey = reader.readPrivateKey(userKey, pwd);
-            Vector certsVector = (new FileCertReader()).readCerts(userCert);
-            X509Certificate[] certs = new X509Certificate[certsVector.size()];
-            certsVector.copyInto(certs);
+
+            ByteArrayInputStream cStream = new ByteArrayInputStream(userCert.getBytes());
+            X509Certificate[] certs = CertificateUtils.loadCertificateChain(cStream, CertificateUtils.Encoding.PEM);
+
             char passwd[] = pwd.toCharArray();
+
             KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
             keystore.load(null, passwd);
             keystore.setKeyEntry("keycreds", pkey, passwd, certs);

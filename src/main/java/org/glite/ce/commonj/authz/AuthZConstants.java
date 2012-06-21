@@ -22,8 +22,6 @@ public class AuthZConstants {
 
     public static final String USER_VOMSATTRS_LABEL = "user.vomsattrs";
 
-    public static final String USERDN_X500_LABEL = "user.dn.X500";
-
     public static final String USERDN_RFC2253_LABEL = "user.dn.RFC2253";
 
     public static final String USER_CERTCHAIN_LABEL = "user.certificate.chain";

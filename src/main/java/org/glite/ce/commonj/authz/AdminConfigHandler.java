@@ -32,6 +32,7 @@ import org.apache.log4j.Logger;
 import org.glite.ce.commonj.configuration.CommonConfigException;
 import org.glite.ce.commonj.configuration.xppm.ConfigurationHandler;
 import org.glite.ce.commonj.configuration.xppm.ConfigurationManager;
+import org.glite.ce.commonj.utils.CEUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -133,7 +134,7 @@ public class AdminConfigHandler
                 if (line.length() > 0 && !line.startsWith("#")) {
                     if (line.startsWith("\"") && line.endsWith("\""))
                         line = line.substring(1, line.length() - 1);
-                    result.add(line);
+                    result.add(CEUtils.convertDNtoRFC2253(line));
                     logger.debug("Registered DN: " + line);
                 }
                 line = reader.readLine();
