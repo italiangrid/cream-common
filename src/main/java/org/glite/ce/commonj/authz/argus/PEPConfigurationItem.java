@@ -24,17 +24,10 @@
 
 package org.glite.ce.commonj.authz.argus;
 
-import java.io.ByteArrayInputStream;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.apache.log4j.Logger;
-import org.glite.authz.common.security.PEMFileReader;
-import org.glite.authz.common.security.PKIKeyManager;
 import org.glite.authz.pep.client.config.PEPClientConfiguration;
 import org.glite.authz.pep.client.config.PEPClientConfigurationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationFactory;
@@ -44,7 +37,7 @@ import org.glite.voms.PKIStore;
 import org.glite.voms.PKIStoreFactory;
 import org.glite.voms.VOMSTrustManager;
 
-import eu.emi.security.authn.x509.impl.CertificateUtils;
+import eu.emi.security.authn.x509.impl.PEMCredential;
 
 public class PEPConfigurationItem
     extends PEPClientConfiguration
@@ -99,24 +92,15 @@ public class PEPConfigurationItem
         this.userCert = new String(userCert);
         this.userKey = new String(userKey);
         this.pwd = new String(pwd);
+
         /*
-         * This workaround is required because of a problem with classloader
-         * incompatibility calling pepKeyManager = new PKIKeyManager(userCert,
-         * userKey, pwd);
+         * TODO verify workaround in 1.14
          */
         try {
-            PEMFileReader reader = new PEMFileReader();
-            PrivateKey pkey = reader.readPrivateKey(userKey, pwd);
 
-            ByteArrayInputStream cStream = new ByteArrayInputStream(userCert.getBytes());
-            X509Certificate[] certs = CertificateUtils.loadCertificateChain(cStream, CertificateUtils.Encoding.PEM);
+            PEMCredential credentials = new PEMCredential(userKey, userCert, pwd.toCharArray());
+            pepKeyManager = credentials.getKeyManager();
 
-            char passwd[] = pwd.toCharArray();
-
-            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keystore.load(null, passwd);
-            keystore.setKeyEntry("keycreds", pkey, passwd, certs);
-            pepKeyManager = new PKIKeyManager(keystore, pwd);
         } catch (Exception ex) {
             throw new PEPClientConfigurationException(ex);
         }
