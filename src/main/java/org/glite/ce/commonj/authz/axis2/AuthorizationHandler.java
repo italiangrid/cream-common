@@ -68,10 +68,11 @@ public abstract class AuthorizationHandler
             /*
              * trigger the initialization of the certificate stuff in request
              */
-            String keySize = (String) request.getAttribute("javax.servlet.request.key_size");
+            Integer keySize = (Integer) request.getAttribute("javax.servlet.request.key_size");
             String sslId = (String) request.getAttribute("javax.servlet.request.ssl_session");
-            logger.debug("Parsing HTTP request: " + sslId + ":" + keySize);
+            logger.debug("Parsing HTTP request: " + sslId + ":" + keySize.toString());
         } catch (Throwable th) {
+            logger.error(th.getMessage(), th);
             throw getAuthorizationFault("Cannot parse HTTP request", msgContext);
         }
 
