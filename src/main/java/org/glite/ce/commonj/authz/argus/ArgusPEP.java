@@ -51,7 +51,7 @@ import org.glite.authz.common.model.Subject;
 import org.glite.authz.common.profile.GLiteAuthorizationProfileConstants;
 import org.glite.authz.pep.client.PEPClient;
 import org.glite.authz.pep.client.PEPClientException;
-import org.glite.authz.pep.profile.GridCEAuthorizationProfile;
+import org.glite.authz.pep.profile.AbstractAuthorizationProfile;
 import org.glite.ce.commonj.authz.AuthZConstants;
 import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
@@ -73,7 +73,7 @@ public class ArgusPEP
 
     private ActionMappingInterface actionMap;
 
-    private Resource ceResource;
+    private String resourceID;
 
     private String caDir;
 
@@ -88,7 +88,7 @@ public class ArgusPEP
         }
         logger.debug("Initializing argus pep client");
 
-        ceResource = GridCEAuthorizationProfile.getInstance().createResourceId(item.getResourceID());
+        resourceID = item.getResourceID();
 
         caDir = item.getCADir();
 
@@ -105,7 +105,8 @@ public class ArgusPEP
             Boolean tmpBool = (Boolean) context.getProperty(AuthZConstants.IS_ADMIN);
             boolean isAdmin = tmpBool != null && tmpBool.booleanValue();
 
-            GridCEAuthorizationProfile ceProfile = GridCEAuthorizationProfile.getInstance();
+            AbstractAuthorizationProfile ceProfile = actionMap.getProfile();
+
             String xAction = actionMap.getXACMLAction(operation);
             if (xAction == null) {
                 if (isAdmin) {
@@ -186,6 +187,8 @@ public class ArgusPEP
             String keyInfo = this.convertCertToPEMString(certs, 1);
             attrKeyInfo.getValues().add(keyInfo);
             sbj.getAttributes().add(attrKeyInfo);
+
+            Resource ceResource = ceProfile.createResourceId(resourceID);
 
             Request request = new Request();
             request.setAction(action);

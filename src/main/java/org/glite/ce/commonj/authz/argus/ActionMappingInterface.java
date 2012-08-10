@@ -28,6 +28,7 @@ import java.util.Iterator;
 
 import javax.xml.namespace.QName;
 
+import org.glite.authz.pep.profile.AbstractAuthorizationProfile;
 import org.glite.ce.commonj.authz.AuthorizationException;
 
 public interface ActionMappingInterface {
@@ -41,4 +42,6 @@ public interface ActionMappingInterface {
     public void checkMandatoryProperties(Iterator<String> props)
         throws AuthorizationException;
 
+    public AbstractAuthorizationProfile getProfile();
+    
 }
