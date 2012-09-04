@@ -43,6 +43,7 @@
         <configuration>
           <show>protected</show>
           <nohelp>true</nohelp>
+          <excludePackageNames>org.glite.ce.commonj.authz:org.glite.ce.commonj.db:org.glite.ce.commonj.listeners:org.glite.ce.commonj.utils</excludePackageNames>
         </configuration>
       </plugin>
 
