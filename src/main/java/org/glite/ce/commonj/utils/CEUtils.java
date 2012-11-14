@@ -56,8 +56,7 @@ import org.apache.axis2.context.MessageContext;
 import org.apache.log4j.Logger;
 import org.bouncycastle.util.encoders.Base64;
 import org.glite.ce.commonj.authz.AuthZConstants;
-import org.glite.voms.FQAN;
-import org.glite.voms.VOMSAttribute;
+import org.italiangrid.voms.VOMSAttribute;
 
 public class CEUtils {
     private static final Logger logger = Logger.getLogger(CEUtils.class);
@@ -118,23 +117,9 @@ public class CEUtils {
         List<String> result = new ArrayList<String>(0);
 
         if (vomsList != null) {
-            List<FQAN> fqanList = null;
-
             for (VOMSAttribute vomsAttr : vomsList) {
                 if (vo == null || vo.equals(vomsAttr.getVO())) {
-                    fqanList = vomsAttr.getListOfFQAN();
-
-                    if (fqanList != null) {
-                        for (FQAN fqan : fqanList) {
-                            result.add(fqan.getFQAN());
-                        }
-                    }
-
-                    if (vo != null) {
-                        break;
-                    }
-
-                    fqanList = null;
+                    result.addAll(vomsAttr.getFQANs());
                 }
             }
         }

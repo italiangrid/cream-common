@@ -27,13 +27,8 @@ package org.glite.ce.commonj.authz.argus;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Vector;
 
-import javax.security.auth.x500.X500Principal;
 import javax.xml.namespace.QName;
 
 import org.apache.log4j.Logger;
@@ -55,11 +50,7 @@ import org.glite.authz.pep.profile.AbstractAuthorizationProfile;
 import org.glite.ce.commonj.authz.AuthZConstants;
 import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
-import org.glite.voms.FQAN;
-import org.glite.voms.PKIStore;
-import org.glite.voms.PKIStoreFactory;
-import org.glite.voms.PKIUtils;
-import org.glite.voms.VOMSAttribute;
+import org.italiangrid.voms.VOMSAttribute;
 
 public class ArgusPEP
     extends PEPClient
@@ -69,13 +60,9 @@ public class ArgusPEP
 
     public static final String ID_ISSUER_ID = "http://glite.org/xacml/attribute/subject-issuer";
 
-    private static HashMap<String, X509Certificate[]> caChains = new HashMap<String, X509Certificate[]>();
-
     private ActionMappingInterface actionMap;
 
     private String resourceID;
-
-    private String caDir;
 
     public ArgusPEP(PEPConfigurationItem item) throws PEPClientException {
         super(item);
@@ -89,8 +76,6 @@ public class ArgusPEP
         logger.debug("Initializing argus pep client");
 
         resourceID = item.getResourceID();
-
-        caDir = item.getCADir();
 
     }
 
@@ -156,21 +141,17 @@ public class ArgusPEP
                 attrVO.setId(GLiteAuthorizationProfileConstants.ID_ATTRIBUTE_VIRTUAL_ORGANIZATION);
                 attrVO.setDataType(Attribute.DT_STRING);
 
-                boolean missingFQAN = true;
                 for (VOMSAttribute vomsAttr : vomsList) {
-                    List<FQAN> fqanList = (List<FQAN>) vomsAttr.getListOfFQAN();
-                    if (fqanList != null) {
-                        for (FQAN fqan : fqanList) {
-                            /*
-                             * Assumption: the first FQAN is the primary FQAN
-                             */
-                            if (missingFQAN) {
-                                attrPrimaryFQAN.getValues().add(fqan.getFQAN());
-                                missingFQAN = false;
-                            }
-
-                            attrFQAN.getValues().add(fqan.getFQAN());
+                    for (String fqan : vomsAttr.getFQANs()) {
+                        /*
+                         * Assumption: the first FQAN is the primary FQAN
+                         */
+                        if (attrPrimaryFQAN.getValues().size() == 0) {
+                            attrPrimaryFQAN.getValues().add(fqan);
                         }
+
+                        attrFQAN.getValues().add(fqan);
+
                     }
 
                     attrVO.getValues().add(vomsAttr.getVO());
@@ -264,60 +245,10 @@ public class ArgusPEP
 
     private X509Certificate[] getCompleteCertChain(MessageContext context) {
         X509Certificate[] certs = (X509Certificate[]) context.getProperty(AuthZConstants.USER_CERTCHAIN_LABEL);
-        int caIdx = 0;
-        while (caIdx < certs.length && certs[caIdx].getBasicConstraints() < 0) {
-            caIdx++;
-        }
-
-        X509Certificate[] tail = getChainForCA(certs[caIdx - 1].getIssuerX500Principal());
-        X509Certificate[] result = new X509Certificate[caIdx + tail.length];
-        for (int k = 0; k < caIdx; k++) {
-            result[k] = certs[k];
-        }
-        for (int k = 0; k < tail.length; k++) {
-            result[caIdx + k] = tail[k];
-        }
-        return result;
-    }
-
-    private synchronized X509Certificate[] getChainForCA(X500Principal caPrincipal) {
-        long ts = System.currentTimeMillis();
-        String caDN = caPrincipal.getName();
-        X509Certificate[] result = caChains.get(caDN);
-
         /*
-         * TODO missing daily renewal
+         * TODO append the missing CA certificates
          */
-        if (result != null && result.length > 0 && result[0].getNotAfter().getTime() > ts) {
-            return result;
-        }
-
-        try {
-            logger.debug("Caching chain for " + caDN);
-            ArrayList<X509Certificate> tmpList = new ArrayList<X509Certificate>(5);
-
-            PKIStore localStore = PKIStoreFactory.getStore(caDir, PKIStore.TYPE_CADIR);
-            Hashtable<String, Vector<X509Certificate>> caTable = localStore.getCAs();
-
-            X509Certificate currCert = null;
-            X500Principal tmpName = caPrincipal;
-            do {
-                currCert = caTable.get(PKIUtils.getHash(tmpName)).get(0);
-                tmpList.add(currCert);
-                logger.debug("Cached " + tmpName.getName());
-                tmpName = currCert.getIssuerX500Principal();
-            } while (!currCert.getIssuerDN().equals(currCert.getSubjectDN()));
-
-            result = new X509Certificate[tmpList.size()];
-            tmpList.toArray(result);
-            caChains.put(caDN, result);
-
-        } catch (Exception ex) {
-            logger.error(ex.getMessage());
-            caChains.remove(caDN);
-            throw new RuntimeException(ex);
-        }
-        return result;
+        return certs;
     }
 
 }

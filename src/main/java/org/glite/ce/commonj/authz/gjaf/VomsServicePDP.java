@@ -27,11 +27,8 @@ package org.glite.ce.commonj.authz.gjaf;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.security.cert.X509Certificate;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,10 +40,7 @@ import org.glite.ce.commonj.authz.AuthZConstants;
 import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.FQANPattern;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
-import org.glite.ce.commonj.authz.axis2.AuthorizationModule;
-import org.glite.voms.VOMSAttribute;
-import org.glite.voms.VOMSValidator;
-import org.glite.voms.ac.ACValidator;
+import org.italiangrid.voms.VOMSAttribute;
 
 public class VomsServicePDP
     implements ServicePDP {
@@ -157,41 +151,17 @@ public class VomsServicePDP
 
     }
 
-    private int checkList(List<VOMSAttribute> vomsList) {
-
-        Iterator<VOMSAttribute> vIter = vomsList.iterator();
-        while (vIter.hasNext()) {
-            List<String> fqanList = (List<String>) vIter.next().getFullyQualifiedAttributes();
-            Iterator<String> fqanIter = fqanList.iterator();
-            while (fqanIter.hasNext()) {
-                String fqanStr = fqanIter.next();
-
-                Iterator<FQANPattern> patternIter = fqanTable.keySet().iterator();
-                while (patternIter.hasNext()) {
-                    FQANPattern pattern = patternIter.next();
-                    logger.debug("Checking fqan: " + fqanStr + " against " + pattern.toString());
-                    if (pattern.matches(fqanStr)) {
-                        logger.info("VOMS attribute authorized: " + fqanStr);
-                        return ALLOWED;
-                    }
-                }
-
-            }
-        }
-        return DENIED;
-    }
-
     private void logMessageForFQAN(List<VOMSAttribute> vomsList, String msg) {
         if (logger.isDebugEnabled()) {
             logger.debug(msg + " with fqan list [");
-            Iterator<VOMSAttribute> vIter = vomsList.iterator();
-            while (vIter.hasNext()) {
-                List<String> fqanList = (List<String>) vIter.next().getFullyQualifiedAttributes();
-                Iterator<String> fqanIter = fqanList.iterator();
-                while (fqanIter.hasNext()) {
-                    logger.debug("    " + fqanIter.next());
+
+            for (VOMSAttribute vomsAttr : vomsList) {
+                List<String> fqanList = vomsAttr.getFQANs();
+                for (String fqanStr : fqanList) {
+                    logger.debug("    " + fqanStr);
                 }
             }
+
             logger.debug("]");
         }
     }
@@ -200,43 +170,31 @@ public class VomsServicePDP
             QName operation)
         throws AuthorizationException {
 
-        List<VOMSAttribute> vomsList = (List<VOMSAttribute>) context
-                .getProperty(AuthZConstants.USER_VOMSATTRS_LABEL);
+        List<VOMSAttribute> vomsList = (List<VOMSAttribute>) context.getProperty(AuthZConstants.USER_VOMSATTRS_LABEL);
 
-        if (vomsList != null && vomsList.size() > 0) {
+        if (vomsList != null) {
 
-            logger.debug("Found VOMS attribute list in the message context");
-            return checkList(vomsList);
+            for (VOMSAttribute vomsAttr : vomsList) {
+                List<String> fqanList = vomsAttr.getFQANs();
 
-        }
+                for (String fqanStr : fqanList) {
 
-        logger.debug("No VOMS attribute list in the message context, trying to parse proxy");
-
-        Set<Object> certChainSet = peerSubject.getPublicCredentials();
-        Iterator<Object> pubCreds = certChainSet.iterator();
-        while (pubCreds.hasNext()) {
-            Object tmpo = pubCreds.next();
-            if (tmpo instanceof X509Certificate[]) {
-                X509Certificate[] certChain = (X509Certificate[]) tmpo;
-                ACValidator acValidator = AuthorizationModule.getACValidator();
-                VOMSValidator vv = new VOMSValidator(certChain, acValidator).validate();
-                vomsList = (List<VOMSAttribute>) vv.getVOMSAttributes();
-                if (vomsList != null && vomsList.size() > 0 && checkList(vomsList) == ALLOWED) {
-                    /*
-                     * TODO remove NULL from VOMSAttribute
-                     */
-                    context.setProperty(AuthZConstants.USER_VOMSATTRS_LABEL, vomsList);
-                    return ALLOWED;
+                    for (FQANPattern pattern : fqanTable.keySet()) {
+                        logger.debug("Checking fqan: " + fqanStr + " against " + pattern.toString());
+                        if (pattern.matches(fqanStr)) {
+                            logger.info("VOMS attribute authorized: " + fqanStr);
+                            return ALLOWED;
+                        }
+                    }
                 }
             }
 
         }
 
-        if (vomsList != null && vomsList.size() > 0) {
-            logMessageForFQAN(vomsList, "Authorization failed");
-        }
+        logMessageForFQAN(vomsList, "Authorization failed");
 
         return DENIED;
+
     }
 
     public void close()

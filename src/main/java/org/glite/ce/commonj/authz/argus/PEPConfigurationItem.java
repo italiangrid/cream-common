@@ -32,11 +32,10 @@ import org.glite.authz.pep.client.config.PEPClientConfiguration;
 import org.glite.authz.pep.client.config.PEPClientConfigurationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationFactory;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
+import org.glite.ce.commonj.authz.axis2.AuthorizationModule;
 import org.glite.ce.commonj.configuration.CEConfigResource;
-import org.glite.voms.PKIStore;
-import org.glite.voms.PKIStoreFactory;
-import org.glite.voms.VOMSTrustManager;
 
+import eu.emi.security.authn.x509.helpers.ssl.SSLTrustManager;
 import eu.emi.security.authn.x509.impl.PEMCredential;
 
 public class PEPConfigurationItem
@@ -57,8 +56,6 @@ public class PEPConfigurationItem
 
     private String pwd;
 
-    private String caDir;
-
     private String mapClass;
 
     private String resID;
@@ -69,6 +66,8 @@ public class PEPConfigurationItem
 
     public PEPConfigurationItem() {
         super();
+
+        pepTrustManager = new SSLTrustManager(AuthorizationModule.validator);
     }
 
     public void setMappingClass(String mClass) {
@@ -113,21 +112,12 @@ public class PEPConfigurationItem
 
     public void setTrustMaterial(String caDir)
         throws PEPClientConfigurationException {
-        this.caDir = new String(caDir);
-        try {
-            PKIStore trustStore = PKIStoreFactory.getStore(caDir, PKIStore.TYPE_CADIR);
-            pepTrustManager = new VOMSTrustManager(trustStore);
-        } catch (Exception ex) {
-            throw new PEPClientConfigurationException(ex);
-        }
+
+        throw new PEPClientConfigurationException("Obsolete call to setTrustMaterial");
     }
 
     public X509TrustManager getTrustManager() {
         return pepTrustManager;
-    }
-
-    public String getCADir() {
-        return caDir;
     }
 
     public Object clone() {
@@ -144,8 +134,6 @@ public class PEPConfigurationItem
             res.userKey = this.userKey;
             res.pwd = this.pwd;
             res.pepKeyManager = this.pepKeyManager;
-            res.caDir = this.caDir;
-            res.pepTrustManager = this.pepTrustManager;
 
             res.setConnectionTimeout(this.getConnectionTimeout());
             res.setMaxConnectionsPerHost(this.getMaxConnectionsPerHost());
@@ -167,7 +155,7 @@ public class PEPConfigurationItem
         if (!tmpItem.userCert.equals(userCert) || !tmpItem.userKey.equals(userKey) || !tmpItem.pwd.equals(pwd))
             return false;
 
-        if (!tmpItem.caDir.equals(caDir) || !tmpItem.mapClass.equals(mapClass) || !tmpItem.resID.equals(resID))
+        if (!tmpItem.mapClass.equals(mapClass) || !tmpItem.resID.equals(resID))
             return false;
 
         if (tmpItem.getConnectionTimeout() != this.getConnectionTimeout())

@@ -26,29 +26,40 @@ import org.apache.axis2.modules.Module;
 import org.apache.log4j.Logger;
 import org.apache.neethi.Assertion;
 import org.apache.neethi.Policy;
-import org.glite.voms.PKIStore;
-import org.glite.voms.VOMSValidator;
-import org.glite.voms.ac.ACValidator;
-import org.glite.voms.ac.VOMSTrustStore;
+import org.italiangrid.voms.store.impl.DefaultUpdatingVOMSTrustStore;
+
+import eu.emi.security.authn.x509.impl.OpensslCertChainValidator;
 
 public class AuthorizationModule
     implements Module {
 
     private static final Logger logger = Logger.getLogger(AuthorizationModule.class.getName());
 
-    public static VOMSTrustStore vomsStore = null;
+    public static DefaultUpdatingVOMSTrustStore vomsStore = null;
+
+    public static OpensslCertChainValidator validator = null;
 
     public void init(ConfigurationContext configContext, AxisModule module)
         throws AxisFault {
 
         try {
-            vomsStore = new PKIStore(PKIStore.DEFAULT_VOMSDIR, PKIStore.TYPE_VOMSDIR, true);
-            VOMSValidator.setTrustStore(vomsStore);
+
+            /*
+             * TODO read caDir from configuration
+             */
+            String caDir = "/etc/grid-security/certificates";
+
+            validator = new OpensslCertChainValidator(caDir);
+
+            /*
+             * TODO localTrustDirs, updateFrequency, updateListener in cTor
+             */
+            vomsStore = new DefaultUpdatingVOMSTrustStore(null, 0, null);
+
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
-            throw new RuntimeException("Cannot configure VOMS support");
+            throw new RuntimeException("Cannot configure security support");
         }
-        logger.info("VOMS store initialized");
 
     }
 
@@ -56,7 +67,11 @@ public class AuthorizationModule
         throws AxisFault {
 
         if (vomsStore != null) {
-            vomsStore.stopRefresh();
+            vomsStore.cancel();
+        }
+        
+        if (validator != null) {
+            validator.dispose();
         }
 
     }
@@ -73,12 +88,4 @@ public class AuthorizationModule
         return false;
     }
 
-    public static ACValidator getACValidator() {
-        if (vomsStore != null) {
-            return ACValidator.getInstance(vomsStore);
-        }
-
-        logger.error("VOMS store not initialized");
-        return null;
-    }
 }

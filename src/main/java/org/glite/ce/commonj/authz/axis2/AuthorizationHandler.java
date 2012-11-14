@@ -38,11 +38,11 @@ import org.glite.ce.commonj.authz.AdminTable;
 import org.glite.ce.commonj.authz.AuthZConstants;
 import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
+import org.glite.ce.commonj.authz.VOMSResultCollector;
 import org.glite.ce.commonj.configuration.CommonServiceConfig;
-import org.glite.voms.FQAN;
-import org.glite.voms.VOMSAttribute;
-import org.glite.voms.VOMSValidator;
-import org.glite.voms.ac.ACValidator;
+import org.italiangrid.voms.VOMSAttribute;
+import org.italiangrid.voms.VOMSValidators;
+import org.italiangrid.voms.ac.VOMSACValidator;
 
 import eu.emi.security.authn.x509.proxy.ProxyUtils;
 
@@ -91,23 +91,24 @@ public abstract class AuthorizationHandler
         subject.getPrincipals().add(userCert.getSubjectX500Principal());
         subject.getPublicCredentials().add(userCertChain);
 
+        VOMSResultCollector collector = new VOMSResultCollector();
+        VOMSACValidator validator = VOMSValidators.newValidator(AuthorizationModule.vomsStore,
+                AuthorizationModule.validator, collector);
+        List<VOMSAttribute> vomsList = validator.validate(userCertChain);
+
         msgContext.setProperty(AuthZConstants.USERDN_RFC2253_LABEL, dnRFC2253);
+
         msgContext.setProperty(AuthZConstants.USER_CERT_LABEL, userCert);
+
         msgContext.setProperty(AuthZConstants.USER_CERTCHAIN_LABEL, userCertChain);
 
-        ACValidator acValidator = AuthorizationModule.getACValidator();
-        VOMSValidator mainValidator = new VOMSValidator(userCertChain, acValidator);
-        mainValidator.validate();
-
-        List<VOMSAttribute> vomsList = (List<VOMSAttribute>) mainValidator.getVOMSAttributes();
         msgContext.setProperty(AuthZConstants.USER_VOMSATTRS_LABEL, vomsList);
 
-        if (vomsList.size() > 0) {
-            VOMSAttribute attr = vomsList.get(0);
-            msgContext.setProperty(AuthZConstants.USER_VO_LABEL, attr.getAC().getVO());
-        }
-
         msgContext.setProperty(AuthZConstants.REMOTE_REQUEST_ADDRESS, remoteAddress);
+
+        if (vomsList.size() > 0) {
+            msgContext.setProperty(AuthZConstants.USER_VO_LABEL, vomsList.get(0).getVO());
+        }
 
         QName operation = this.getOperation(msgContext);
         if (operation == null) {
@@ -144,12 +145,21 @@ public abstract class AuthorizationHandler
         } catch (AuthorizationException authEx) {
 
             logger.error(authEx.getMessage(), authEx);
-            throw getAuthorizationFault("Authorization failure: " + authEx.getMessage(), msgContext);
+            String fullError = "Authorization failure: " + authEx.getMessage();
+            if (collector.size() > 0) {
+                fullError += "\n" + collector.toString();
+            }
+            throw getAuthorizationFault(fullError, msgContext);
 
         }
 
         if (!authorized) {
-            throw getAuthorizationFault(dnRFC2253 + " not authorized for " + operation, msgContext);
+
+            String fullError = dnRFC2253 + " not authorized for " + operation;
+            if (collector.size() > 0) {
+                fullError += "\n" + collector.toString();
+            }
+            throw getAuthorizationFault(fullError, msgContext);
         }
 
         return Handler.InvocationResponse.CONTINUE;
@@ -165,20 +175,17 @@ public abstract class AuthorizationHandler
 
     protected abstract CommonServiceConfig getCommonConfiguration();
 
-    private String getLogInfoString(String DN, List<VOMSAttribute> attrs, String operation, String address,
+    private String getLogInfoString(String DN, List<VOMSAttribute> vomsAttrs, String operation, String address,
             boolean authorized) {
 
         StringBuffer buffer = new StringBuffer("request for OPERATION=");
         buffer.append(operation).append("; REMOTE_REQUEST_ADDRESS=").append(address);
         buffer.append("; USER_DN=").append(DN).append("; ");
-        if (attrs != null && attrs.size() > 0) {
+        if (vomsAttrs != null && vomsAttrs.size() > 0) {
             buffer.append("USER_FQAN={ ");
-            for (VOMSAttribute att : attrs) {
-                List<FQAN> list = (List<FQAN>) att.getListOfFQAN();
-                if (list != null) {
-                    for (FQAN fqan : list) {
-                        buffer.append(fqan).append("; ");
-                    }
+            for (VOMSAttribute attr : vomsAttrs) {
+                for (String fqan : attr.getFQANs()) {
+                    buffer.append(fqan).append("; ");
                 }
             }
             buffer.append("}; ");
