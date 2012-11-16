@@ -170,6 +170,7 @@ public class VomsServicePDP
             QName operation)
         throws AuthorizationException {
 
+        @SuppressWarnings("unchecked")
         List<VOMSAttribute> vomsList = (List<VOMSAttribute>) context.getProperty(AuthZConstants.USER_VOMSATTRS_LABEL);
 
         if (vomsList != null) {
@@ -205,7 +206,8 @@ public class VomsServicePDP
         VomsServicePDP result = new VomsServicePDP(this.id);
         result.gridMapFile = this.gridMapFile;
         result.timestamp = this.timestamp;
-        result.fqanTable = (HashMap<FQANPattern, String>) this.fqanTable.clone();
+        result.fqanTable = new HashMap<FQANPattern, String>(fqanTable.size());
+        result.fqanTable.putAll(fqanTable);
         return result;
     }
 

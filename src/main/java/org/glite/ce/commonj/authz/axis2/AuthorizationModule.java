@@ -18,6 +18,8 @@
 
 package org.glite.ce.commonj.authz.axis2;
 
+import java.util.ArrayList;
+
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.description.AxisDescription;
@@ -26,6 +28,7 @@ import org.apache.axis2.modules.Module;
 import org.apache.log4j.Logger;
 import org.apache.neethi.Assertion;
 import org.apache.neethi.Policy;
+import org.glite.ce.commonj.configuration.CommonServiceConfig;
 import org.italiangrid.voms.store.impl.DefaultUpdatingVOMSTrustStore;
 
 import eu.emi.security.authn.x509.impl.OpensslCertChainValidator;
@@ -44,17 +47,18 @@ public class AuthorizationModule
 
         try {
 
-            /*
-             * TODO read caDir from configuration
-             */
-            String caDir = "/etc/grid-security/certificates";
+            CommonServiceConfig commonConfig = CommonServiceConfig.getConfiguration();
+
+            String caDir = commonConfig.getGlobalAttributeAsString("CApath", "/etc/grid-security/certificates");
+
+            long updateFrequency = commonConfig.getGlobalAttributeAsLong("CAreload",
+                    DefaultUpdatingVOMSTrustStore.DEFAULT_UPDATE_FREQUENCY);
 
             validator = new OpensslCertChainValidator(caDir);
 
-            /*
-             * TODO localTrustDirs, updateFrequency, updateListener in cTor
-             */
-            vomsStore = new DefaultUpdatingVOMSTrustStore(null, 0, null);
+            ArrayList<String> localTrustDirs = new ArrayList<String>(1);
+            localTrustDirs.add(caDir);
+            vomsStore = new DefaultUpdatingVOMSTrustStore(localTrustDirs, updateFrequency);
 
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
@@ -69,7 +73,7 @@ public class AuthorizationModule
         if (vomsStore != null) {
             vomsStore.cancel();
         }
-        
+
         if (validator != null) {
             validator.dispose();
         }

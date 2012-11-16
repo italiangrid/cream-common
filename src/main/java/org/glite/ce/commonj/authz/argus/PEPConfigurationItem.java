@@ -92,9 +92,6 @@ public class PEPConfigurationItem
         this.userKey = new String(userKey);
         this.pwd = new String(pwd);
 
-        /*
-         * TODO verify workaround in 1.14
-         */
         try {
 
             PEMCredential credentials = new PEMCredential(userKey, userCert, pwd.toCharArray());

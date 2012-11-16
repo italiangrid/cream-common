@@ -125,6 +125,7 @@ public class ArgusPEP
             }
             sbj.getAttributes().add(attrSubjectId);
 
+            @SuppressWarnings("unchecked")
             List<VOMSAttribute> vomsList = (List<VOMSAttribute>) context
                     .getProperty(AuthZConstants.USER_VOMSATTRS_LABEL);
 

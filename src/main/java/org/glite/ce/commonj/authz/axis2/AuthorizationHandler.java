@@ -116,7 +116,7 @@ public abstract class AuthorizationHandler
         }
         logger.debug("Checking operation " + operation);
 
-        CommonServiceConfig commonConfig = this.getCommonConfiguration();
+        CommonServiceConfig commonConfig = CommonServiceConfig.getConfiguration();
         if (commonConfig == null) {
             throw getAuthorizationFault("Authorization layer is not configured", msgContext);
         }
@@ -173,7 +173,7 @@ public abstract class AuthorizationHandler
 
     protected abstract AxisFault getAuthorizationFault(String message, MessageContext context);
 
-    protected abstract CommonServiceConfig getCommonConfiguration();
+    // protected abstract CommonServiceConfig getCommonConfiguration();
 
     private String getLogInfoString(String DN, List<VOMSAttribute> vomsAttrs, String operation, String address,
             boolean authorized) {

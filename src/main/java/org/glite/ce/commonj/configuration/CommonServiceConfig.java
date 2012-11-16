@@ -89,12 +89,35 @@ public class CommonServiceConfig {
         return "";
     }
 
+    public String getGlobalAttributeAsString(String name, String defValue) {
+        String result = getGlobalAttributeAsString(name);
+        if (result.length() == 0) {
+            return defValue;
+        }
+        return result;
+    }
+
     public int getGlobalAttributeAsInt(String name, int defValue) {
         Object[] tmpo = confManager.getConfigurationElements(GlobalAttributes.class);
         if (tmpo.length > 0) {
             GlobalAttributes attrs = (GlobalAttributes) tmpo[0];
             try {
                 return Integer.parseInt(attrs.get(name));
+            } catch (Exception ex) {
+                logger.error(ex.getMessage());
+            }
+        }
+
+        return defValue;
+
+    }
+
+    public long getGlobalAttributeAsLong(String name, long defValue) {
+        Object[] tmpo = confManager.getConfigurationElements(GlobalAttributes.class);
+        if (tmpo.length > 0) {
+            GlobalAttributes attrs = (GlobalAttributes) tmpo[0];
+            try {
+                return Long.parseLong(attrs.get(name));
             } catch (Exception ex) {
                 logger.error(ex.getMessage());
             }
@@ -169,13 +192,14 @@ public class CommonServiceConfig {
         return configFile.getParent();
     }
 
+    @SuppressWarnings("unchecked")
     public HashMap<String, DataSource> getDataSources() {
         HashMap<String, DataSource> dataSources = null;
 
         Object[] dataSourcesArray = confManager.getConfigurationElements(HashMap.class);
 
         if (dataSourcesArray != null && dataSourcesArray.length > 0) {
-            dataSources = (HashMap) dataSourcesArray[0];
+            dataSources = (HashMap<String, DataSource>) dataSourcesArray[0];
         }
 
         return dataSources;
@@ -191,6 +215,38 @@ public class CommonServiceConfig {
         if (confManager != null) {
             confManager.shutdown();
         }
+    }
+
+    /*
+     * Configuration provider section Basic requirement: one common
+     * configuration available for each instance of axis. Different services
+     * MUST be deployed in different axis web applications
+     */
+
+    protected static CommonServiceConfig commonConfiguration = null;
+
+    protected static Class<?> configuratorClass = null;
+
+    public static CommonServiceConfig getConfiguration() {
+
+        if (configuratorClass == null) {
+            logger.error("Cannot detect service configuration class");
+        }
+
+        if (commonConfiguration == null) {
+            synchronized (CommonServiceConfig.class) {
+                if (commonConfiguration == null) {
+                    try {
+
+                        commonConfiguration = (CommonServiceConfig) configuratorClass.newInstance();
+
+                    } catch (Exception ex) {
+                        logger.error(ex.getMessage(), ex);
+                    }
+                }
+            }
+        }
+        return commonConfiguration;
     }
 
 }

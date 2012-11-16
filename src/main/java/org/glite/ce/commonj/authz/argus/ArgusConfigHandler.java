@@ -29,14 +29,9 @@ import org.apache.log4j.Logger;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
 import org.glite.ce.commonj.configuration.CommonConfigException;
 import org.glite.ce.commonj.configuration.xppm.ConfigurationHandler;
-import org.glite.ce.commonj.configuration.xppm.GlobalAttributeHandler;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-/*
- * TODO as soon as the new schema for the configfile is available
- * the xpath expression will be changed
- */
 public class ArgusConfigHandler
     extends ConfigurationHandler {
 
