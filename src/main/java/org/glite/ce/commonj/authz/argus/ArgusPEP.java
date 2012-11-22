@@ -24,15 +24,13 @@
 
 package org.glite.ce.commonj.authz.argus;
 
-import java.io.IOException;
-import java.io.StringWriter;
+import java.io.ByteArrayOutputStream;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import org.apache.log4j.Logger;
-import org.bouncycastle.openssl.PEMWriter;
 import org.glite.authz.common.model.Action;
 import org.glite.authz.common.model.Attribute;
 import org.glite.authz.common.model.AttributeAssignment;
@@ -51,6 +49,8 @@ import org.glite.ce.commonj.authz.AuthZConstants;
 import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
 import org.italiangrid.voms.VOMSAttribute;
+
+import eu.emi.security.authn.x509.impl.CertificateUtils;
 
 public class ArgusPEP
     extends PEPClient
@@ -166,7 +166,10 @@ public class ArgusPEP
             Attribute attrKeyInfo = new Attribute();
             attrKeyInfo.setId(Attribute.ID_SUB_KEY_INFO);
             attrKeyInfo.setDataType(Attribute.DT_STRING);
-            String keyInfo = this.convertCertToPEMString(certs, 1);
+
+            ByteArrayOutputStream inStr = new ByteArrayOutputStream();
+            CertificateUtils.saveCertificateChain(inStr, certs, CertificateUtils.Encoding.PEM);
+            String keyInfo = inStr.toString();
             attrKeyInfo.getValues().add(keyInfo);
             sbj.getAttributes().add(attrKeyInfo);
 
@@ -225,29 +228,10 @@ public class ArgusPEP
         return true;
     }
 
-    private String convertCertToPEMString(X509Certificate[] certs, int mode)
-        throws IOException {
-        StringWriter stringWriter = new StringWriter();
-        PEMWriter writer = new PEMWriter(stringWriter);
-        for (int k = 0; k < certs.length; k++) {
-            X509Certificate cert = certs[k];
-            if ((mode == 1 && k == certs.length - 1) || (mode == 2 && cert.getBasicConstraints() >= 0)) {
-                continue;
-            }
-            writer.writeObject(cert);
-        }
-        try {
-            writer.close();
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
-        return stringWriter.toString();
-    }
-
     private X509Certificate[] getCompleteCertChain(MessageContext context) {
         X509Certificate[] certs = (X509Certificate[]) context.getProperty(AuthZConstants.USER_CERTCHAIN_LABEL);
         /*
-         * TODO append the missing CA certificates
+         * TODO append the missing CA certificates (No root CA)
          */
         return certs;
     }

@@ -58,6 +58,8 @@ import org.bouncycastle.util.encoders.Base64;
 import org.glite.ce.commonj.authz.AuthZConstants;
 import org.italiangrid.voms.VOMSAttribute;
 
+import eu.emi.security.authn.x509.impl.OpensslNameUtils;
+
 public class CEUtils {
     private static final Logger logger = Logger.getLogger(CEUtils.class);
 
@@ -112,6 +114,7 @@ public class CEUtils {
     public static List<String> getFQAN(String vo) {
         MessageContext messageContext = MessageContext.getCurrentMessageContext();
 
+        @SuppressWarnings("unchecked")
         List<VOMSAttribute> vomsList = (List<VOMSAttribute>) messageContext
                 .getProperty(AuthZConstants.USER_VOMSATTRS_LABEL);
         List<String> result = new ArrayList<String>(0);
@@ -127,6 +130,7 @@ public class CEUtils {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     public static List<VOMSAttribute> getVOMSAttributes() {
         return (List<VOMSAttribute>) MessageContext.getCurrentMessageContext().getProperty(
                 AuthZConstants.USER_VOMSATTRS_LABEL);
@@ -459,9 +463,9 @@ public class CEUtils {
 
     public static String convertDNfromRFC2253(String dn) {
         /*
-         * TODO to be implemented
+         * see CAnL javadoc for any issue related to the conversion
          */
-        throw new RuntimeException("To be implemented");
+        return OpensslNameUtils.convertFromRfc2253(dn, false);
     }
 
 }
