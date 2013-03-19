@@ -136,11 +136,4 @@
 
   </dependencies>
 
-  <repositories>
-    <repository>
-      <id>emi-infn-repo</id>
-      <url>http://devel12.cnaf.infn.it:7444/pub/emi/packaging/maven</url>
-    </repository>
-  </repositories>
-
 </project>
