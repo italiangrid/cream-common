@@ -25,7 +25,6 @@
 package org.glite.ce.commonj.authz;
 
 import java.util.HashMap;
-import java.util.List;
 
 import org.italiangrid.voms.VOMSAttribute;
 import org.italiangrid.voms.ac.VOMSValidationResult;
@@ -42,8 +41,9 @@ public class VOMSResultCollector
         super();
     }
 
-    public void notifyValidationResult(VOMSValidationResult result, VOMSAttribute attributes) {
+    public void notifyValidationResult(VOMSValidationResult result) {
         if (!result.isValid()) {
+            VOMSAttribute attributes = result.getAttributes();
             this.put(attributes.getVO(), result);
         }
     }
