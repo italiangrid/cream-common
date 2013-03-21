@@ -38,7 +38,7 @@ import org.apache.log4j.Logger;
 import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
 
-import eu.emi.security.authn.x509.helpers.CertificateHelpers;
+import eu.emi.security.authn.x509.impl.OpensslNameUtils;
 
 public class BlackListServicePDP
     implements ServicePDP {
@@ -124,11 +124,15 @@ public class BlackListServicePDP
 
                 if (line.length() > 0 && !line.startsWith("#")) {
 
+                    /*
+                     * TODO get rid of openssl format
+                     */
+                    
                     if (line.startsWith("\""))
                         line = line.substring(1);
                     if (line.endsWith("\""))
                         line = line.substring(0, line.length() - 1);
-                    dnTable.add(CertificateHelpers.opensslToRfc2253(line, false));
+                    dnTable.add(OpensslNameUtils.opensslToRfc2253(line, false));
                     logger.debug("Registered DN: " + line);
                 }
                 line = reader.readLine();

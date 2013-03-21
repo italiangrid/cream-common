@@ -35,7 +35,7 @@ import org.glite.ce.commonj.configuration.xppm.ConfigurationManager;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import eu.emi.security.authn.x509.helpers.CertificateHelpers;
+import eu.emi.security.authn.x509.impl.OpensslNameUtils;
 
 public class AdminConfigHandler
     extends ConfigurationHandler {
@@ -135,7 +135,10 @@ public class AdminConfigHandler
                 if (line.length() > 0 && !line.startsWith("#")) {
                     if (line.startsWith("\"") && line.endsWith("\""))
                         line = line.substring(1, line.length() - 1);
-                    result.add(CertificateHelpers.opensslToRfc2253(line, false));
+                    /*
+                     * TODO get rid of openssl format
+                     */
+                    result.add(OpensslNameUtils.opensslToRfc2253(line, false));
                     logger.debug("Registered DN: " + line);
                 }
                 line = reader.readLine();

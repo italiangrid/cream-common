@@ -40,7 +40,7 @@ import org.apache.log4j.Logger;
 import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
 
-import eu.emi.security.authn.x509.helpers.CertificateHelpers;
+import eu.emi.security.authn.x509.impl.OpensslNameUtils;
 
 public class GridMapServicePDP
     implements ServicePDP {
@@ -125,7 +125,10 @@ public class GridMapServicePDP
             for (String line = reader.readLine(); line != null; line = reader.readLine()) {
                 Matcher matcher = mapFilePattern.matcher(line);
                 if (matcher.matches()) {
-                    String newDN = CertificateHelpers.opensslToRfc2253(matcher.group(1), false);
+                    /*
+                     * TODO get rid of openssl format
+                     */
+                    String newDN = OpensslNameUtils.opensslToRfc2253(matcher.group(1), false);
                     String oldDN = dnTable.put(newDN, matcher.group(2));
                     if (oldDN != null) {
                         logger.warn("Replaced value for " + newDN + ": " + oldDN);
