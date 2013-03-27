@@ -32,9 +32,6 @@
     <parameter name="sendStacktraceDetailsWithFaults">false</parameter>
     <parameter name="DrillDownToRootCauseForFaultReason">false</parameter>
 
-    <parameter name="userName">admin</parameter>
-    <parameter name="password">__CHANGE_PWD__</parameter>
-
     <parameter name="disableREST" locked="false">false</parameter>
     <parameter name="disableSOAP12" locked="true">false</parameter>
     <parameter name="useGeneratedWSDLinJAXWS">false</parameter>

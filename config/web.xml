@@ -40,14 +40,6 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
     
-    <!-- TODO remove admin servlet for security reasons -->
-    <servlet>
-        <servlet-name>AxisAdminServlet</servlet-name>
-        <display-name>Apache-Axis AxisAdmin Servlet (Web Admin)</display-name>
-        <servlet-class>
-            org.apache.axis2.webapp.AxisAdminServlet</servlet-class>
-    </servlet>
-    
     <servlet-mapping>
         <servlet-name>AxisServlet</servlet-name>
         <url-pattern>/servlet/AxisServlet</url-pattern>
@@ -61,11 +53,6 @@
     <servlet-mapping>
         <servlet-name>AxisServlet</servlet-name>
         <url-pattern>/services/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>AxisAdminServlet</servlet-name>
-        <url-pattern>/axis2-admin/*</url-pattern>
     </servlet-mapping>
 
     <mime-mapping>
