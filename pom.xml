@@ -125,6 +125,31 @@
                 <require>jclassads</require>
                 <require>mysql-connector-java</require>
               </requires>
+              <defineStatements>
+                <defineStatement>_tomcatclibdir ${tomcat.lib.dir}</defineStatement>
+              </defineStatements>
+              <postinstallScriptlet>
+                <script><![CDATA[if [ $1 -eq 1 ] ; then
+  
+  touch /etc/grid-security/admin-list
+  
+  # JDBC driver must be loaded by the same classloader used for dbcp
+  ln -s /usr/share/java/mysql-connector-java.jar %{_tomcatclibdir}/mysql-connector-java_forcream.jar
+
+
+fi
+]]>
+                </script>
+              </postinstallScriptlet>
+              <preremoveScriptlet>
+                <script><![CDATA[if [ $1 -eq 0 ] ; then
+
+  rm -f %{_tomcatclibdir}/mysql-connector-java_forcream.jar
+ 
+fi
+]]>
+                </script>
+              </preremoveScriptlet>
             </configuration>
           </execution>
 
