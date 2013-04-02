@@ -100,7 +100,7 @@
                   <sources>
                     <source>
                       <location>${project.build.directory}/${project.artifactId}-${project.version}.jar</location>
-                      <destination>${project.artifactId}.jar</destination>
+                      <destination>glite-ce-common-java.jar</destination>
                     </source>
                   </sources>
                 </mapping>
