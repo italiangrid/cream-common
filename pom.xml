@@ -9,6 +9,7 @@
 
   <properties>
     <rpm.release>1</rpm.release>
+    <rpm.pkgname>glite-ce-common-java</rpm.pkgname>
   </properties>
   
   <parent>
@@ -75,116 +76,62 @@
         </configuration>
       </plugin>
 
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>rpm-maven-plugin</artifactId>
-        <version>2.1-alpha-2</version>
-        <executions>
-
-          <execution>
-            <id>cream-common</id>
-            <goals><goal>attached-rpm</goal></goals>
-            <configuration>
-              <name>glite-ce-common-java</name>
-              <summary>Common libraries for all services running on the CREAM CE</summary>
-              <description>Common libraries for all services running on the CREAM CE</description>
-              <!-- changelogFile>CHANGELOG</changelogFile -->
-              <copyright>Apache Software License</copyright>
-              <release>${project.rpm.release}</release>
-              <group>System Environment/Libraries</group>
-              <mappings>
-                <mapping>
-                  <directory>/usr/share/java</directory>
-                  <directoryIncluded>false</directoryIncluded>
-                  <filemode>744</filemode>
-                  <sources>
-                    <source>
-                      <location>${project.build.directory}/${project.artifactId}-${project.version}.jar</location>
-                      <destination>glite-ce-common-java.jar</destination>
-                    </source>
-                  </sources>
-                </mapping>
-                <mapping>
-                  <directory>/etc/glite-ce-common-java</directory>
-                  <filemode>744</filemode>
-                  <configuration>noreplace</configuration>
-                  <sources>
-                    <source><location>config/axis2.xml</location></source>
-                    <source><location>config/web.xml</location></source>
-                  </sources>
-                </mapping>
-              </mappings>
-              <requires>
-                <require>axis2</require>
-                <require>argus-pep-common</require>
-                <require>canl-java</require>
-                <require>${tomcat.pkg.name}</require>
-                <require>bouncycastle</require>
-                <require>argus-pep-api-java</require>
-                <require>voms-api-java3</require>
-                <require>jclassads</require>
-                <require>mysql-connector-java</require>
-              </requires>
-              <defineStatements>
-                <defineStatement>_tomcatclibdir ${tomcat.lib.dir}</defineStatement>
-              </defineStatements>
-              <postinstallScriptlet>
-                <script><![CDATA[if [ $1 -eq 1 ] ; then
-  
-  touch /etc/grid-security/admin-list
-  
-  # JDBC driver must be loaded by the same classloader used for dbcp
-  ln -s /usr/share/java/mysql-connector-java.jar %{_tomcatclibdir}/mysql-connector-java_forcream.jar
-
-
-fi
-]]>
-                </script>
-              </postinstallScriptlet>
-              <preremoveScriptlet>
-                <script><![CDATA[if [ $1 -eq 0 ] ; then
-
-  rm -f %{_tomcatclibdir}/mysql-connector-java_forcream.jar
- 
-fi
-]]>
-                </script>
-              </preremoveScriptlet>
-            </configuration>
-          </execution>
-
-          <execution>
-            <id>cream-common-doc</id>
-            <goals><goal>attached-rpm</goal></goals>
-            <configuration>
-              <name>glite-ce-common-java-doc</name>
-              <classifier>doc</classifier>
-              <summary>Documentation files for the CREAM Common library</summary>
-              <description>Documentation files for the CREAM Common library</description>
-              <!-- changelogFile>CHANGELOG</changelogFile -->
-              <copyright>Apache Software License</copyright>
-              <release>${project.rpm.release}</release>
-              <group>Documentation</group>
-              <mappings>
-                <mapping>
-                  <directory>/usr/share/javadoc/glite-ce-common-java</directory>
-                  <filemode>744</filemode>
-                  <sources>
-                    <source>
-                      <location>${project.build.directory}/apidocs</location>
-                    </source>
-                  </sources>
-                </mapping>
-              </mappings>
-            </configuration>
-          </execution>
-
-        </executions>
-      </plugin>
-
     </plugins>
 
   </build>
+
+  <profiles>
+    <profile>
+      <id>rpmbuild</id>
+      <activation>
+        <property>
+          <name>rpm.repackaging</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.7</version>
+            <executions>
+              <execution>
+                <id>rpmbuild</id>
+                <phase>package</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <target>
+                    <mkdir dir="${project.build.directory}/rpmbuild/BUILD"/>
+                    <mkdir dir="${project.build.directory}/rpmbuild/RPMS"/>
+                    <mkdir dir="${project.build.directory}/rpmbuild/SOURCES"/>
+                    <mkdir dir="${project.build.directory}/rpmbuild/SPECS"/>
+                    <mkdir dir="${project.build.directory}/rpmbuild/SRPMS"/>
+                    <exec executable="/bin/tar">
+                      <arg line="--exclude .git --exclude target -zcf ${project.build.directory}/rpmbuild/SOURCES/${rpm.pkgname}.tar.gz ."/>
+                    </exec>
+                    <copy file="${project.basedir}/project/${rpm.pkgname}.spec.in" toFile="${project.build.directory}/rpmbuild/SPECS/${rpm.pkgname}.spec"/>
+                    <replace file="${project.build.directory}/rpmbuild/SPECS/${rpm.pkgname}.spec">
+                      <replacefilter token="@PKGNAME@" value="${rpm.pkgname}"/>
+                      <replacefilter token="@PKGVERSION@" value="${version}"/>
+                      <replacefilter token="@PKGRELEASE@" value="${rpm.release}"/>
+                      <replacefilter token="@MVNOPTS@" value="-Drpm.repackaging=false -DskipTests"/>
+                      <replacefilter token="@TOMCATPKG@" value="${tomcat.pkg.name}"/>
+                      <replacefilter token="@TOMCATLIB@" value="${tomcat.lib.dir}"/>
+                    </replace>
+                    <exec executable="/usr/bin/rpmbuild">
+                      <arg line="-ba --define '_topdir ${project.build.directory}/rpmbuild' ${project.build.directory}/rpmbuild/SPECS/${rpm.pkgname}.spec"/>
+                    </exec>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <dependencies>
     <dependency>
