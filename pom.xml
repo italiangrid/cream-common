@@ -165,7 +165,7 @@
     </dependency>
 
     <dependency>
-      <groupId>tomcat</groupId>
+      <groupId>${tomcat.servlet.groupid}</groupId>
       <artifactId>servlet-api</artifactId>
     </dependency>
 
