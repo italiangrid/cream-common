@@ -79,7 +79,7 @@ Documentation files for the CREAM Common library
 %defattr(-,root,root)
 %dir %{_javadocdir}/%{name}/html/
 %dir %{_javadocdir}/%{name}/html/resources/
-%doc %{_javadocdir}/%{name}/html/resources/inherit.gif
+%doc %{_javadocdir}/%{name}/html/resources/*
 
 %doc %{_javadocdir}/%{name}/html/*.html
 %doc %{_javadocdir}/%{name}/html/stylesheet.css
