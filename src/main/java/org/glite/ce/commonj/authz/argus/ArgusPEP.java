@@ -158,9 +158,19 @@ public class ArgusPEP
                     attrVO.getValues().add(vomsAttr.getVO());
                 }
 
-                sbj.getAttributes().add(attrPrimaryFQAN);
-                sbj.getAttributes().add(attrFQAN);
-                sbj.getAttributes().add(attrVO);
+                if (!attrPrimaryFQAN.getValues().isEmpty()) {
+                    sbj.getAttributes().add(attrPrimaryFQAN);
+                } else {
+                    logger.warn("found empty attrPrimaryFQAN DN=" + tmpDN + " operation=" + operation);
+                }
+
+                if (!attrFQAN.getValues().isEmpty()) {
+                    sbj.getAttributes().add(attrFQAN);
+                }
+
+                if (!attrVO.getValues().isEmpty()) {
+                    sbj.getAttributes().add(attrVO);
+                }
             }
 
             Attribute attrKeyInfo = new Attribute();
