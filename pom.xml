@@ -2,17 +2,28 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   
-  <parent>
-    <groupId>org.glite.ce</groupId>
-    <artifactId>cream-parent</artifactId>
-    <version>1.15</version>
-  </parent>
-
   <groupId>org.glite.ce</groupId>
   <artifactId>cream-common</artifactId>
-  <version>${common.java.version}</version>
+  <version>1.14.3</version>
   <packaging>jar</packaging>
 
+  <properties>
+    <rpm.release>1</rpm.release>
+    <rpm.pkgname>glite-ce-common-java</rpm.pkgname>
+  </properties>
+  
+  <parent>
+    <groupId>org.glite</groupId>
+    <artifactId>cream-parent</artifactId>
+    <version>1.0.0</version>
+  </parent>
+
+  <scm>
+    <connection>scm:git:git://github.com/italiangrid/cream-common.git</connection>
+    <url>https://github.com/italiangrid/cream-common</url>
+    <developerConnection>scm:git:ssh://git@github.com:italiangrid/cream-common.git</developerConnection>
+  </scm>
+  
   <build>
     <plugins>
       
@@ -40,10 +51,17 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.8.1</version>
-        <configuration>
-          <show>protected</show>
-          <nohelp>true</nohelp>
-        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals><goal>jar</goal></goals>
+            <configuration>
+              <show>protected</show>
+              <nohelp>true</nohelp>
+              <excludePackageNames>org.glite.ce.commonj.authz:org.glite.ce.commonj.db:org.glite.ce.commonj.listeners:org.glite.ce.commonj.utils</excludePackageNames>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>
@@ -62,82 +80,114 @@
 
   </build>
 
+  <profiles>
+    <profile>
+      <id>rpmbuild</id>
+      <activation>
+        <property>
+          <name>rpm.repackaging</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.7</version>
+            <executions>
+              <execution>
+                <id>rpmbuild</id>
+                <phase>package</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <target>
+                    <mkdir dir="${project.build.directory}/rpmbuild/BUILD"/>
+                    <mkdir dir="${project.build.directory}/rpmbuild/RPMS"/>
+                    <mkdir dir="${project.build.directory}/rpmbuild/SOURCES"/>
+                    <mkdir dir="${project.build.directory}/rpmbuild/SPECS"/>
+                    <mkdir dir="${project.build.directory}/rpmbuild/SRPMS"/>
+                    <exec executable="/bin/tar">
+                      <arg line="--exclude .git --exclude target -zcf ${project.build.directory}/rpmbuild/SOURCES/${rpm.pkgname}.tar.gz ."/>
+                    </exec>
+                    <copy file="${project.basedir}/project/${rpm.pkgname}.spec.in" toFile="${project.build.directory}/rpmbuild/SPECS/${rpm.pkgname}.spec"/>
+                    <replace file="${project.build.directory}/rpmbuild/SPECS/${rpm.pkgname}.spec">
+                      <replacefilter token="@PKGNAME@" value="${rpm.pkgname}"/>
+                      <replacefilter token="@PKGVERSION@" value="${project.version}"/>
+                      <replacefilter token="@PKGRELEASE@" value="${rpm.release}"/>
+                      <replacefilter token="@MVNOPTS@" value="-Drpm.repackaging=false -DskipTests"/>
+                      <replacefilter token="@TOMCATPKG@" value="${tomcat.pkg.name}"/>
+                      <replacefilter token="@TOMCATLIB@" value="${tomcat.lib.dir}"/>
+                    </replace>
+                    <exec executable="/usr/bin/rpmbuild">
+                      <arg line="-ba --define '_topdir ${project.build.directory}/rpmbuild' ${project.build.directory}/rpmbuild/SPECS/${rpm.pkgname}.spec"/>
+                    </exec>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
     </dependency>
     
+    <!-- TODO move version in parent pom -->
     <dependency>
-      <groupId>org.glite.voms</groupId>
+      <groupId>org.italiangrid</groupId>
       <artifactId>voms-api-java</artifactId>
-      <version>${voms.version}</version>
+      <version>2.0.10</version>
       <scope>compile</scope>
     </dependency>
 
     <dependency>
       <groupId>org.glite.authz</groupId>
       <artifactId>pep-common</artifactId>
-      <version>${pep.common.version}</version>
-      <scope>compile</scope>
     </dependency>
 
     <dependency>
       <groupId>org.glite.authz</groupId>
       <artifactId>pep-java</artifactId>
-      <version>${pep.java.version}</version>
-      <scope>compile</scope>
     </dependency>
 
-    <dependency>
-      <groupId>eu.eu-emi.security</groupId>
-      <artifactId>canl</artifactId>
-      <version>${canl.version}</version>
-      <scope>compile</scope>
-    </dependency>
-
+    <!-- TODO move version in parent pom -->
     <dependency>
       <groupId>org.glite.security</groupId>
       <artifactId>trustmanager</artifactId>
-      <version>${trustman.version}</version>
+      <version>3.1.4</version>
       <scope>compile</scope>
     </dependency>
 
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15</artifactId>
-      <version>${bcprov.version}</version>
-      <scope>compile</scope>
     </dependency>
 
     <dependency>
-      <groupId>tomcat</groupId>
+      <groupId>${tomcat.servlet.groupid}</groupId>
       <artifactId>servlet-api</artifactId>
-      <version>${servlet.version}</version>
-      <scope>compile</scope>
     </dependency>
 
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
-      <version>${log4j.version}</version>
-      <scope>compile</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.axis2</groupId>
       <artifactId>axis2</artifactId>
-      <version>${axis2.version}</version>
-      <scope>compile</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.neethi</groupId>
       <artifactId>neethi</artifactId>
-      <version>${neethi.version}</version>
-      <scope>compile</scope>
     </dependency>
 
   </dependencies>
