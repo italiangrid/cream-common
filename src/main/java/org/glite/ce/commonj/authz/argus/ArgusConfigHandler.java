@@ -128,21 +128,21 @@ public class ArgusConfigHandler
         try {
             tmpConfig.setConnectionTimeout(Integer.parseInt(timeoutStr));
         } catch (Exception ex) {
-            logger.debug("Missing or wrong argument " + TIMEOUT_ATTR);
+            logger.debug("Missing or wrong argument " + TIMEOUT_ATTR + "; default value used");
         }
 
         String connHostStr = argusElem.getAttribute(CONN_HOST_ATTR);
         try {
             tmpConfig.setMaxConnectionsPerHost(Integer.parseInt(connHostStr));
         } catch (Exception ex) {
-            logger.debug("Missing or wrong argument " + CONN_HOST_ATTR);
+            logger.debug("Missing or wrong argument " + CONN_HOST_ATTR + "; default value used");
         }
 
         String maxConnStr = argusElem.getAttribute(MAX_CONN_ATTR);
         try {
             tmpConfig.setMaxTotalConnections(Integer.parseInt(maxConnStr));
         } catch (Exception ex) {
-            logger.debug("Missing or wrong argument " + MAX_CONN_ATTR);
+            logger.debug("Missing or wrong argument " + MAX_CONN_ATTR  + "; default value used");
         }
 
         try {
