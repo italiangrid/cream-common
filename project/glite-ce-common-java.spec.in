@@ -43,7 +43,7 @@ cp %{_builddir}/%{name}-%{version}/config/*.xml %{buildroot}/etc/glite-ce-common
 rm -rf %{buildroot} 
 
 %post
-if [ \$1 -eq 1 ] ; then
+if [ $1 -eq 1 ] ; then
   
   touch /etc/grid-security/admin-list
   
@@ -54,7 +54,7 @@ if [ \$1 -eq 1 ] ; then
 fi
 
 %preun
-if [ \$1 -eq 0 ] ; then
+if [ $1 -eq 0 ] ; then
 
   rm -f %{_tomcatclibdir}/mysql-connector-java_forcream.jar
  
