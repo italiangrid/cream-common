@@ -38,6 +38,8 @@ mkdir -p %{buildroot}/%{_javadocdir}/%{name}
 ln -s %{_builddir}/%{name}-%{version}/target/apidocs %{buildroot}/%{_javadocdir}/%{name}/html
 mkdir -p %{buildroot}/etc/glite-ce-common-java
 cp %{_builddir}/%{name}-%{version}/config/*.xml %{buildroot}/etc/glite-ce-common-java
+mkdir -p %{buildroot}/var/lib/trustmanager-tomcat
+cp %{_builddir}/%{name}-%{version}/config/log4j-trustmanager.properties %{buildroot}/var/lib/trustmanager-tomcat
 
 %clean
 rm -rf %{buildroot} 
@@ -49,6 +51,15 @@ if [ $1 -eq 1 ] ; then
   
   # JDBC driver must be loaded by the same classloader used for dbcp
   ln -s /usr/share/java/mysql-connector-java.jar %{_tomcatclibdir}/mysql-connector-java_forcream.jar
+  
+  #workaround: install trustmanager for tomcat iff there's no package available in the system
+  if [ ! -e /usr/share/java/trustmanager-tomcat.jar ] ; then
+    ln -s /usr/share/java/trustmanager-tomcat-compat.jar /usr/share/java/trustmanager-tomcat.jar
+  fi
+
+  if [ ! -e /usr/share/java/trustmanager.jar ] ; then
+    ln -s /usr/share/java/trustmanager-compat.jar /usr/share/java/trustmanager.jar
+  fi
 
 
 fi
@@ -57,6 +68,14 @@ fi
 if [ $1 -eq 0 ] ; then
 
   rm -f %{_tomcatclibdir}/mysql-connector-java_forcream.jar
+  
+  if [ -h /usr/share/java/trustmanager.jar ] ; then
+    rm -f /usr/share/java/trustmanager.jar
+  fi
+
+  if [ -h /usr/share/java/trustmanager-tomcat.jar ] ; then
+    rm -f /usr/share/java/trustmanager-tomcat.jar
+  fi
  
 fi
 
@@ -66,6 +85,8 @@ fi
 /usr/share/java/*.jar
 %dir /etc/glite-ce-common-java
 %config(noreplace) /etc/glite-ce-common-java/*
+%dir /var/lib/trustmanager-tomcat
+%config(noreplace) /var/lib/trustmanager-tomcat/log4j-trustmanager.properties
 
 %package doc
 Summary: Documentation files for the CREAM Common library
