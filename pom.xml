@@ -4,18 +4,18 @@
   
   <groupId>org.glite.ce</groupId>
   <artifactId>cream-common</artifactId>
-  <version>1.14.3</version>
+  <version>1.15.2</version>
   <packaging>jar</packaging>
 
   <properties>
-    <rpm.release>1</rpm.release>
+    <rpm.release>2</rpm.release>
     <rpm.pkgname>glite-ce-common-java</rpm.pkgname>
   </properties>
   
   <parent>
     <groupId>org.glite</groupId>
     <artifactId>cream-parent</artifactId>
-    <version>0.8.0</version>
+    <version>0.9.0</version>
   </parent>
 
   <scm>
@@ -74,6 +74,53 @@
             <log4j.output.file>${project.build.directory}/testsuite.log</log4j.output.file>
           </systemPropertyVariables>
         </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.7</version>
+        <executions>
+          <execution>
+            <id>install-lib-compat</id>
+            <goals><goal>copy</goal></goals>
+            <configuration>
+              <artifactItems>
+              
+                <artifactItem>
+                  <groupId>org.glite.authz</groupId>
+                  <artifactId>pep-common</artifactId>
+                  <destFileName>argus-pep-common-compat.jar</destFileName>
+                </artifactItem>
+                
+                <artifactItem>
+                  <groupId>org.glite.authz</groupId>
+                  <artifactId>pep-java</artifactId>
+                  <destFileName>argus-pep-api-java-compat.jar</destFileName>
+                </artifactItem>
+
+                <artifactItem>
+                  <groupId>org.glite.security</groupId>
+                  <artifactId>trustmanager</artifactId>
+                  <destFileName>trustmanager-compat.jar</destFileName>
+                </artifactItem>
+
+                <artifactItem>
+                  <groupId>org.glite.security</groupId>
+                  <artifactId>trustmanager-axis2</artifactId>
+                  <destFileName>trustmanager-axis2-compat.jar</destFileName>
+                </artifactItem>
+                
+                <artifactItem>
+                  <groupId>org.glite.security</groupId>
+                  <artifactId>trustmanager-tomcat</artifactId>
+                  <destFileName>trustmanager-tomcat-compat.jar</destFileName>
+                </artifactItem>
+
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
     </plugins>

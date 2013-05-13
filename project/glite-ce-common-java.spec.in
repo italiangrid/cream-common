@@ -10,8 +10,7 @@ BuildArch: noarch
 BuildRequires: maven
 Requires: axis2, bouncycastle 
 Requires: @TOMCATPKG@
-Requires: argus-pep-common, argus-pep-api-java
-Requires: emi-trustmanager, voms-api-java, jclassads, mysql-connector-java
+Requires: voms-api-java, jclassads, mysql-connector-java
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReqProv: yes
 Source: %{name}.tar.gz
@@ -34,6 +33,7 @@ mkdir -p %{buildroot}
 mvn @MVNOPTS@ install
 mkdir -p %{buildroot}/usr/share/java
 cp %{_builddir}/%{name}-%{version}/target/cream-common-@PKGVERSION@.jar %{buildroot}/usr/share/java/glite-ce-common-java.jar
+cp %{_builddir}/%{name}-%{version}/target/dependency/*.jar %{buildroot}/usr/share/java
 mkdir -p %{buildroot}/%{_javadocdir}/%{name}
 ln -s %{_builddir}/%{name}-%{version}/target/apidocs %{buildroot}/%{_javadocdir}/%{name}/html
 mkdir -p %{buildroot}/etc/glite-ce-common-java

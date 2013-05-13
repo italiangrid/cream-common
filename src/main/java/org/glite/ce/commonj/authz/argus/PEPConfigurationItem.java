@@ -30,11 +30,11 @@ import java.security.cert.X509Certificate;
 import java.util.Vector;
 
 import javax.net.ssl.X509KeyManager;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import org.apache.log4j.Logger;
 import org.glite.authz.common.security.PEMFileReader;
-import org.glite.authz.common.security.PKIKeyManager;
 import org.glite.authz.pep.client.config.PEPClientConfiguration;
 import org.glite.authz.pep.client.config.PEPClientConfigurationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationFactory;
@@ -98,11 +98,7 @@ public class PEPConfigurationItem
         this.userCert = new String(userCert);
         this.userKey = new String(userKey);
         this.pwd = new String(pwd);
-        /*
-         * This workaround is required because of a problem with classloader
-         * incompatibility calling pepKeyManager = new PKIKeyManager(userCert,
-         * userKey, pwd);
-         */
+
         try {
             PEMFileReader reader = new PEMFileReader();
             PrivateKey pkey = reader.readPrivateKey(userKey, pwd);
@@ -113,8 +109,13 @@ public class PEPConfigurationItem
             KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
             keystore.load(null, passwd);
             keystore.setKeyEntry("keycreds", pkey, passwd, certs);
-            pepKeyManager = new PKIKeyManager(keystore, pwd);
+
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+            keyManagerFactory.init(keystore, passwd);
+            pepKeyManager = (X509KeyManager) keyManagerFactory.getKeyManagers()[0];
+
         } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
             throw new PEPClientConfigurationException(ex);
         }
 
