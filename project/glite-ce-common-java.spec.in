@@ -36,8 +36,6 @@ mkdir -p %{buildroot}/usr/share/java
 cp %{_builddir}/%{name}-%{version}/target/cream-common-@PKGVERSION@.jar %{buildroot}/usr/share/java/glite-ce-common-java.jar
 mkdir -p %{buildroot}/%{_javadocdir}/%{name}
 ln -s %{_builddir}/%{name}-%{version}/target/apidocs %{buildroot}/%{_javadocdir}/%{name}/html
-mkdir -p %{buildroot}/etc/glite-ce-common-java
-cp %{_builddir}/%{name}-%{version}/config/*.xml %{buildroot}/etc/glite-ce-common-java
 
 %clean
 rm -rf %{buildroot} 
@@ -65,7 +63,6 @@ fi
 %defattr(-,root,root)
 /usr/share/java/*.jar
 %dir /etc/glite-ce-common-java
-%config(noreplace) /etc/glite-ce-common-java/*
 
 %package doc
 Summary: Documentation files for the CREAM Common library
