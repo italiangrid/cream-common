@@ -218,25 +218,27 @@ public class CommonServiceConfig {
     }
 
     /*
-     * Configuration provider section Basic requirement: one common
+     * Configuration provider section. Basic requirement: one common
      * configuration available for each instance of axis. Different services
-     * MUST be deployed in different axis web applications
+     * MUST be deployed in different axis web applications.
      */
 
     protected static CommonServiceConfig commonConfiguration = null;
 
-    protected static Class<?> configuratorClass = null;
-
     public static CommonServiceConfig getConfiguration() {
-
-        if (configuratorClass == null) {
-            logger.error("Cannot detect service configuration class");
-        }
 
         if (commonConfiguration == null) {
             synchronized (CommonServiceConfig.class) {
                 if (commonConfiguration == null) {
                     try {
+
+                        String confClassname = CommonContextListener.getConfigClass();
+                        if (confClassname == null) {
+                            logger.error("Cannot detect service configuration class");
+                            return null;
+                        }
+
+                        Class<?> configuratorClass = Class.forName(confClassname);
 
                         commonConfiguration = (CommonServiceConfig) configuratorClass.newInstance();
 

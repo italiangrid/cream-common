@@ -42,6 +42,8 @@ public class CommonContextListener
     private static String serviceConfFilename = null;
 
     private static String logConfFilename = null;
+    
+    private static String serviceConfClass = null;
 
     public void contextInitialized(ServletContextEvent event) {
 
@@ -105,6 +107,10 @@ public class CommonContextListener
     public static String getConfigPath() {
         return serviceConfFilename;
     }
+    
+    public static String getConfigClass() {
+        return serviceConfClass;
+    }
 
     private class LocalConfParser
         extends DefaultHandler {
@@ -130,6 +136,11 @@ public class CommonContextListener
                 if (currentParam.equals("serviceConfigurationFile")) {
                     serviceConfFilename = currentText;
                     logger.debug("Found  service configuration path " + currentText);
+                }
+
+                if (currentParam.equals("serviceConfigurationClass")) {
+                    serviceConfClass = currentText;
+                    logger.debug("Found  service configuration class " + currentText);
                 }
 
                 if (currentParam.equals("log4jConfigurationFile")) {
