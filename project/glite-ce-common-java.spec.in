@@ -62,7 +62,6 @@ fi
 %files
 %defattr(-,root,root)
 /usr/share/java/*.jar
-%dir /etc/glite-ce-common-java
 
 %package doc
 Summary: Documentation files for the CREAM Common library
