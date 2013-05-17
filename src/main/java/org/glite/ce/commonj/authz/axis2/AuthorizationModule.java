@@ -50,14 +50,16 @@ public class AuthorizationModule
             CommonServiceConfig commonConfig = CommonServiceConfig.getConfiguration();
 
             String caDir = commonConfig.getGlobalAttributeAsString("CApath", "/etc/grid-security/certificates");
+            String voDir = commonConfig.getGlobalAttributeAsString("VOpath", "/etc/grid-security/vomsdir");
 
-            long updateFrequency = commonConfig.getGlobalAttributeAsLong("CAreload",
+            long updateFrequency = commonConfig.getGlobalAttributeAsLong("VOreload",
                     DefaultUpdatingVOMSTrustStore.DEFAULT_UPDATE_FREQUENCY);
 
             validator = new OpensslCertChainValidator(caDir);
 
             ArrayList<String> localTrustDirs = new ArrayList<String>(1);
-            localTrustDirs.add(caDir);
+            localTrustDirs.add(voDir);
+
             vomsStore = new DefaultUpdatingVOMSTrustStore(localTrustDirs, updateFrequency);
 
         } catch (Exception ex) {
