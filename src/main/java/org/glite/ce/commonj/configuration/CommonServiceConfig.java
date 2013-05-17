@@ -104,7 +104,7 @@ public class CommonServiceConfig {
             try {
                 return Integer.parseInt(attrs.get(name));
             } catch (Exception ex) {
-                logger.error(ex.getMessage());
+                logger.warn("Error parsing " + name + ": " + ex.getMessage() + "; used default");
             }
         }
 
@@ -119,7 +119,7 @@ public class CommonServiceConfig {
             try {
                 return Long.parseLong(attrs.get(name));
             } catch (Exception ex) {
-                logger.error(ex.getMessage());
+                logger.warn("Error parsing " + name + ": " + ex.getMessage() + "; used default");
             }
         }
 
@@ -241,6 +241,8 @@ public class CommonServiceConfig {
                         Class<?> configuratorClass = Class.forName(confClassname);
 
                         commonConfiguration = (CommonServiceConfig) configuratorClass.newInstance();
+
+                        logger.debug("Created instance of " + commonConfiguration.getClass().getName());
 
                     } catch (Exception ex) {
                         logger.error(ex.getMessage(), ex);
