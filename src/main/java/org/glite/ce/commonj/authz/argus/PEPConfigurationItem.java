@@ -24,7 +24,6 @@
 
 package org.glite.ce.commonj.authz.argus;
 
-import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.apache.log4j.Logger;
@@ -36,7 +35,6 @@ import org.glite.ce.commonj.authz.axis2.AuthorizationModule;
 import org.glite.ce.commonj.configuration.CEConfigResource;
 
 import eu.emi.security.authn.x509.helpers.ssl.SSLTrustManager;
-import eu.emi.security.authn.x509.impl.PEMCredential;
 
 public class PEPConfigurationItem
     extends PEPClientConfiguration
@@ -62,8 +60,6 @@ public class PEPConfigurationItem
 
     private X509TrustManager pepTrustManager;
 
-    private X509KeyManager pepKeyManager;
-
     public PEPConfigurationItem() {
         super();
 
@@ -84,27 +80,6 @@ public class PEPConfigurationItem
 
     public String getResourceID() {
         return new String(resID);
-    }
-
-    public void setKeyMaterial(String userCert, String userKey, String pwd)
-        throws PEPClientConfigurationException {
-        this.userCert = new String(userCert);
-        this.userKey = new String(userKey);
-        this.pwd = new String(pwd);
-
-        try {
-
-            PEMCredential credentials = new PEMCredential(userKey, userCert, pwd.toCharArray());
-            pepKeyManager = credentials.getKeyManager();
-
-        } catch (Exception ex) {
-            throw new PEPClientConfigurationException(ex);
-        }
-
-    }
-
-    public X509KeyManager getKeyManager() {
-        return pepKeyManager;
     }
 
     public void setTrustMaterial(String caDir)
@@ -130,7 +105,7 @@ public class PEPConfigurationItem
             res.userCert = this.userCert;
             res.userKey = this.userKey;
             res.pwd = this.pwd;
-            res.pepKeyManager = this.pepKeyManager;
+            res.setKeyMaterial(userCert, userKey, pwd);
 
             res.setConnectionTimeout(this.getConnectionTimeout());
             res.setMaxConnectionsPerHost(this.getMaxConnectionsPerHost());
