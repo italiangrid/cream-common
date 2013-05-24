@@ -35,6 +35,8 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 import org.glite.ce.commonj.authz.AdminTable;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
+import org.glite.ce.commonj.authz.argus.ArgusPEPFactory;
+import org.glite.ce.commonj.authz.argus.PEPConfigurationItem;
 import org.glite.ce.commonj.configuration.xppm.ConfigurationManager;
 import org.glite.ce.commonj.configuration.xppm.GlobalAttributes;
 import org.glite.ce.commonj.listeners.CommonContextListener;
@@ -131,9 +133,18 @@ public class CommonServiceConfig {
         Object[] tmpo = confManager.getConfigurationElements(ServiceAuthorizationInterface.class);
         if (tmpo.length > 0) {
             ServiceAuthorizationInterface authz = (ServiceAuthorizationInterface) tmpo[0];
+            logger.debug("Configuration system returns an authorization box: " + authz.getClass().getName());
             return authz;
         }
 
+        tmpo = confManager.getConfigurationElements(PEPConfigurationItem.class);
+        if (tmpo.length > 0) {
+            PEPConfigurationItem pepCItem = (PEPConfigurationItem) tmpo[0];
+            logger.debug("Configuration system returns an Argus parameter set");
+            return ArgusPEPFactory.getInstance(pepCItem);
+        }
+
+        logger.debug("Nothing returned from configuration system");
         return null;
     }
 

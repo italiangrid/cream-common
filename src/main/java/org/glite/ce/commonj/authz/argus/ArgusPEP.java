@@ -44,6 +44,7 @@ import org.glite.authz.common.model.Subject;
 import org.glite.authz.common.profile.GLiteAuthorizationProfileConstants;
 import org.glite.authz.pep.client.PEPClient;
 import org.glite.authz.pep.client.PEPClientException;
+import org.glite.authz.pep.client.config.PEPClientConfiguration;
 import org.glite.authz.pep.profile.AbstractAuthorizationProfile;
 import org.glite.ce.commonj.authz.AuthZConstants;
 import org.glite.ce.commonj.authz.AuthorizationException;
@@ -64,10 +65,11 @@ public class ArgusPEP
 
     private String resourceID;
 
-    public ArgusPEP(PEPConfigurationItem item) throws PEPClientException {
-        super(item);
+    public ArgusPEP(PEPClientConfiguration pepConf, String resId, String mapClass) throws PEPClientException {
+
+        super(pepConf);
         try {
-            Class<?> mClass = Class.forName(item.getMappingClass());
+            Class<?> mClass = Class.forName(mapClass);
             actionMap = (ActionMappingInterface) mClass.newInstance();
         } catch (Exception ex) {
             logger.error("Cannot load mapping class", ex);
@@ -75,7 +77,7 @@ public class ArgusPEP
         }
         logger.debug("Initializing argus pep client");
 
-        resourceID = item.getResourceID();
+        resourceID = resId;
 
     }
 
@@ -112,7 +114,7 @@ public class ArgusPEP
             attrSubjectId.getValues().add(context.getProperty(AuthZConstants.USERDN_RFC2253_LABEL));
             sbj.getAttributes().add(attrSubjectId);
 
-            X509Certificate[] certs = this.getCompleteCertChain(context);
+            X509Certificate[] certs = (X509Certificate[]) context.getProperty(AuthZConstants.USER_CERTCHAIN_LABEL);
 
             Attribute attrIssuerId = new Attribute();
             attrIssuerId.setId(ID_ISSUER_ID);
@@ -236,14 +238,6 @@ public class ArgusPEP
         actionMap.checkMandatoryProperties(context.getPropertyNames());
 
         return true;
-    }
-
-    private X509Certificate[] getCompleteCertChain(MessageContext context) {
-        X509Certificate[] certs = (X509Certificate[]) context.getProperty(AuthZConstants.USER_CERTCHAIN_LABEL);
-        /*
-         * TODO append the missing CA certificates (No root CA)
-         */
-        return certs;
     }
 
 }

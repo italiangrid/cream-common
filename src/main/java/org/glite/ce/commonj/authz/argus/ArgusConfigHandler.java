@@ -26,7 +26,6 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactoryConfigurationException;
 
 import org.apache.log4j.Logger;
-import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
 import org.glite.ce.commonj.configuration.CommonConfigException;
 import org.glite.ce.commonj.configuration.xppm.ConfigurationHandler;
 import org.w3c.dom.Element;
@@ -55,15 +54,11 @@ public class ArgusConfigHandler
 
     private static final String MAX_CONN_ATTR = "max_connection";
 
-    private static final String CA_DIR_ATTR = "ca_dir";
-
     private static final String RES_ID_ATTR = "resource_id";
 
     private static final String MAPPING_ATTR = "mapping_class";
 
     private XPathExpression expr;
-
-    private ArgusPEP argus;
 
     private PEPConfigurationItem currConfig;
 
@@ -73,7 +68,6 @@ public class ArgusConfigHandler
         XPath xpath = ConfigurationHandler.getXPathFactory().newXPath();
         expr = xpath.compile(XPATH_STRING);
 
-        argus = null;
         currConfig = null;
         tmpConfig = null;
     }
@@ -83,13 +77,13 @@ public class ArgusConfigHandler
     }
 
     public Class<?> getCategory() {
-        return ServiceAuthorizationInterface.class;
+        return PEPConfigurationItem.class;
     }
 
     public Object[] getConfigurationElement() {
-        if (argus != null) {
+        if (currConfig != null) {
             Object[] result = new Object[1];
-            result[0] = argus;
+            result[0] = currConfig;
             return result;
         }
         return null;
@@ -119,6 +113,23 @@ public class ArgusConfigHandler
 
         tmpConfig.setMappingClass(tmps);
 
+        tmps = argusElem.getAttribute(CERT_FILE_ATTR);
+        if (tmps == "") {
+            throw new CommonConfigException("Missing mandatory attribute: " + CERT_FILE_ATTR);
+        }
+
+        tmpConfig.setCertificatePath(tmps);
+
+        tmps = argusElem.getAttribute(KEY_FILE_ATTR);
+        if (tmps == "") {
+            throw new CommonConfigException("Missing mandatory attribute: " + KEY_FILE_ATTR);
+        }
+
+        tmpConfig.setKeyPath(tmps);
+
+        tmps = argusElem.getAttribute(PWD_ATTR);
+        tmpConfig.setPassword(tmps);
+
         String timeoutStr = argusElem.getAttribute(TIMEOUT_ATTR);
         try {
             tmpConfig.setConnectionTimeout(Integer.parseInt(timeoutStr));
@@ -140,33 +151,11 @@ public class ArgusConfigHandler
             logger.warn("Missing or wrong argument " + MAX_CONN_ATTR + "; default value used");
         }
 
-        try {
-
-            tmpConfig.setKeyMaterial(argusElem.getAttribute(CERT_FILE_ATTR), argusElem.getAttribute(KEY_FILE_ATTR),
-                    argusElem.getAttribute(PWD_ATTR));
-
-            String caDir = argusElem.getAttribute(CA_DIR_ATTR);
-            if (caDir == "") {
-                caDir = "/etc/grid-security/certificates";
-            }
-
-            if (!(new File(caDir)).isDirectory()) {
-                throw new Exception("Missing or wrong CA directory");
-            }
-
-            tmpConfig.setTrustMaterial(caDir);
-
-        } catch (Exception ex) {
-            throw new CommonConfigException(ex.getMessage(), ex);
-        }
-
         NodeList papElemList = argusElem.getElementsByTagName(PAP_ENDPOINT_TAG);
         for (int k = 0; k < papElemList.getLength(); k++) {
             Element papElement = (Element) papElemList.item(k);
             String papEP = papElement.getAttribute(PAP_URL_ATTR);
-            if (papEP != "") {
-                tmpConfig.addPEPDaemonEndpoint(papEP);
-            }
+            tmpConfig.addEndpoint(papEP);
         }
 
         boolean result = !tmpConfig.equals(currConfig);
@@ -183,11 +172,6 @@ public class ArgusConfigHandler
         if (!tmpConfig.equals(currConfig)) {
             currConfig = tmpConfig;
             tmpConfig = null;
-            try {
-                argus = new ArgusPEP(currConfig);
-            } catch (Exception ex) {
-                logger.error("Cannot create ArgusPEP", ex);
-            }
         }
     }
 
@@ -200,7 +184,7 @@ public class ArgusConfigHandler
     }
 
     public void clean() {
-        argus = null;
+        currConfig = null;
     }
 
 }
