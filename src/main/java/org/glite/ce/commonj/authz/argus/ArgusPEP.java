@@ -26,6 +26,8 @@ package org.glite.ce.commonj.authz.argus;
 
 import java.io.ByteArrayOutputStream;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -49,17 +51,22 @@ import org.glite.authz.pep.profile.AbstractAuthorizationProfile;
 import org.glite.ce.commonj.authz.AuthZConstants;
 import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
+import org.glite.ce.commonj.authz.axis2.AuthorizationModule;
 import org.italiangrid.voms.VOMSAttribute;
 
+import eu.emi.security.authn.x509.StoreUpdateListener;
 import eu.emi.security.authn.x509.impl.CertificateUtils;
+import eu.emi.security.authn.x509.proxy.ProxyUtils;
 
 public class ArgusPEP
     extends PEPClient
-    implements ServiceAuthorizationInterface {
+    implements ServiceAuthorizationInterface, StoreUpdateListener {
 
     private static Logger logger = Logger.getLogger(ArgusPEP.class.getName());
 
     public static final String ID_ISSUER_ID = "http://glite.org/xacml/attribute/subject-issuer";
+
+    private static HashMap<String, String> issuerCache = null;
 
     private ActionMappingInterface actionMap;
 
@@ -75,7 +82,12 @@ public class ArgusPEP
             logger.error("Cannot load mapping class", ex);
             throw new PEPClientException("Cannot load mapping class");
         }
-        logger.debug("Initializing argus pep client");
+
+        this.loadIssuerCache();
+
+        AuthorizationModule.validator.addUpdateListener(this);
+
+        logger.debug("Initialized argus pep client");
 
         resourceID = resId;
 
@@ -119,12 +131,7 @@ public class ArgusPEP
             Attribute attrIssuerId = new Attribute();
             attrIssuerId.setId(ID_ISSUER_ID);
             attrIssuerId.setDataType(Attribute.DT_X500_NAME);
-            for (X509Certificate certItem : certs) {
-                if (certItem.getBasicConstraints() >= 0) {
-                    logger.debug("Insert issuer ID " + certItem.getIssuerDN().getName());
-                    attrIssuerId.getValues().add(certItem.getIssuerDN().getName());
-                }
-            }
+            attrIssuerId.getValues().addAll(this.getIssuerIdList(certs));
             sbj.getAttributes().add(attrSubjectId);
 
             @SuppressWarnings("unchecked")
@@ -238,6 +245,53 @@ public class ArgusPEP
         actionMap.checkMandatoryProperties(context.getPropertyNames());
 
         return true;
+    }
+
+    public void loadingNotification(String loc, String type, StoreUpdateListener.Severity level, Exception cause) {
+        if (level == StoreUpdateListener.Severity.NOTIFICATION && type == StoreUpdateListener.CA_CERT) {
+            loadIssuerCache();
+        }
+    }
+
+    private void loadIssuerCache() {
+
+        synchronized (ID_ISSUER_ID) {
+
+            if (issuerCache == null) {
+                issuerCache = new HashMap<String, String>();
+            } else {
+                issuerCache.clear();
+            }
+
+            X509Certificate[] trustCerts = AuthorizationModule.validator.getTrustedIssuers();
+            for (X509Certificate tCert : trustCerts) {
+                String sbjName = tCert.getSubjectDN().getName();
+                String issName = tCert.getIssuerDN().getName();
+                if (sbjName.equals(issName)) {
+                    issName = "";
+                }
+                logger.debug("Caching CA: " + sbjName + "(" + issName + ")");
+                issuerCache.put(sbjName, issName);
+            }
+            logger.debug("Loaded " + issuerCache.size() + " CA");
+        }
+    }
+
+    private List<String> getIssuerIdList(X509Certificate[] certList) {
+
+        ArrayList<String> result = new ArrayList<String>();
+
+        X509Certificate userCert = ProxyUtils.getEndUserCertificate(certList);
+        String currIssuer = userCert.getIssuerDN().getName();
+
+        synchronized (ID_ISSUER_ID) {
+            while (issuerCache.containsKey(currIssuer)) {
+                result.add(currIssuer);
+                currIssuer = issuerCache.get(currIssuer);
+            }
+        }
+
+        return result;
     }
 
 }
