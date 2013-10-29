@@ -1,3 +1,6 @@
+%global _tomcat %{?el6:tomcat6}%{!?el6:tomcat5}
+%global _tomcatclibdir %{?el6:/usr/share/java/tomcat6}%{!?el6:/var/lib/tomcat5/common/lib}
+
 Summary: Common libraries for all services running on the CREAM CE
 Name: @PKGNAME@
 Version: @PKGVERSION@
@@ -9,15 +12,12 @@ Group: System Environment/Libraries
 BuildArch: noarch
 BuildRequires: maven
 Requires: axis2, bouncycastle 
-Requires: @TOMCATPKG@
+Requires: %{_tomcat}
 Requires: argus-pep-common, argus-pep-api-java
 Requires: canl-java, voms-api-java3, jclassads, mysql-connector-java
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReqProv: yes
 Source: %{name}.tar.gz
-
-%global _tomcat @TOMCATPKG@
-%global _tomcatclibdir @TOMCATLIB@
 
 %description
 Common libraries for all services running on the CREAM CE
