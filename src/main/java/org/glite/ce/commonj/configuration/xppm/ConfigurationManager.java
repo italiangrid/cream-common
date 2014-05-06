@@ -368,6 +368,7 @@ public class ConfigurationManager
                         if (commitOK) {
 
                             handler.commit();
+                            logger.debug("Committed " + handler.getCategory().getName());
                             enqueueEvent(handler.getCategory(), lastTriggerMod, ConfigurationEvent.UPDATED_CONFIG);
 
                         } else {
@@ -385,7 +386,7 @@ public class ConfigurationManager
                 }
             }
 
-            if (commitOK && lastTriggerMod > 0) {
+            if (commitOK && lastTriggerMod > lastModificationTime) {
                 lastModificationTime = lastTriggerMod;
             }
 
