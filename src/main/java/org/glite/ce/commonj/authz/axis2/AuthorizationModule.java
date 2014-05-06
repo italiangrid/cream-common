@@ -31,7 +31,9 @@ import org.apache.neethi.Policy;
 import org.glite.ce.commonj.configuration.CommonServiceConfig;
 import org.italiangrid.voms.store.impl.DefaultUpdatingVOMSTrustStore;
 
+import eu.emi.security.authn.x509.NamespaceCheckingMode;
 import eu.emi.security.authn.x509.impl.OpensslCertChainValidator;
+import eu.emi.security.authn.x509.impl.ValidatorParamsExt;
 
 public class AuthorizationModule
     implements Module {
@@ -52,10 +54,10 @@ public class AuthorizationModule
             String caDir = commonConfig.getGlobalAttributeAsString("CApath", "/etc/grid-security/certificates");
             String voDir = commonConfig.getGlobalAttributeAsString("VOpath", "/etc/grid-security/vomsdir");
 
-            long updateFrequency = commonConfig.getGlobalAttributeAsLong("VOreload",
-                    DefaultUpdatingVOMSTrustStore.DEFAULT_UPDATE_FREQUENCY);
+            long updateFrequency = commonConfig.getGlobalAttributeAsLong("VOreload", 3600000);
 
-            validator = new OpensslCertChainValidator(caDir);
+            validator = new OpensslCertChainValidator(caDir, false, NamespaceCheckingMode.EUGRIDPMA_GLOBUS,
+                    updateFrequency, new ValidatorParamsExt(), false);
 
             ArrayList<String> localTrustDirs = new ArrayList<String>(1);
             localTrustDirs.add(voDir);
