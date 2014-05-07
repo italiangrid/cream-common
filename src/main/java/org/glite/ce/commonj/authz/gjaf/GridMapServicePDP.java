@@ -137,7 +137,7 @@ public class GridMapServicePDP
                 }
             }
         } catch (IOException ioEx) {
-            logger.error(ioEx.getMessage(), ioEx);
+            logger.error(ioEx.getMessage());
             throw new InitializeException(ioEx.getMessage());
         } finally {
             if (reader != null) {

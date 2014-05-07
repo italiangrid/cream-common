@@ -130,7 +130,7 @@ public class GJAFConfigHandler
                     currentPlugin.setProperty(paraName, paraValue);
 
                 } catch (Exception ex) {
-                    logger.error(ex.getMessage(), ex);
+                    logger.error("Error setting properties for "  + plugName + ": " + ex.getMessage());
                     throw new CommonConfigException("Error setting properties for " + plugName);
                 }
 
@@ -167,7 +167,7 @@ public class GJAFConfigHandler
                 newPlugins.add(newPlugin);
 
             } catch (Exception ex) {
-                logger.error(ex.getMessage(), ex);
+                logger.error("Error setting properties for " + plugin.getId() + ": " + ex.getMessage());
                 throw new CommonConfigException("Error setting properties for " + plugin.getId());
             }
         }
@@ -211,7 +211,7 @@ public class GJAFConfigHandler
             interceptor = (ServiceInterceptor) constr.newInstance(constrArgValue);
 
         } catch (Exception ex) {
-            logger.error(ex.getMessage(), ex);
+            logger.error("Cannot initialize " + plugName + ": " + ex.getMessage());
             throw new CommonConfigException("Cannot initialize " + plugName);
         }
 

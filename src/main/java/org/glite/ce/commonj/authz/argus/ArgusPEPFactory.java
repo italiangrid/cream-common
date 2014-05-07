@@ -74,7 +74,7 @@ public class ArgusPEPFactory {
                 logger.debug("Renewed PEP client instance");
 
             } catch (Exception ex) {
-                logger.error(ex.getMessage(), ex);
+                logger.error(ex.getMessage());
             }
 
         }

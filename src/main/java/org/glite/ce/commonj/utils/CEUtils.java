@@ -317,7 +317,7 @@ public class CEUtils {
             try {
                 chmodProc = Runtime.getRuntime().exec(chmod_command);
             } catch (Exception ex) {
-                logger.error("Cannot set permissions to the store proxy certificate", ex);
+                logger.error("Cannot set permissions to the store proxy certificate: " + ex.getMessage());
                 retcod = -1;
                 throw new IOException("Cannot set permissions to the store proxy certificate: " + ex.getMessage());
             } finally {

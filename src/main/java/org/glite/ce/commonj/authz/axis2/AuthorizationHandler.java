@@ -72,7 +72,7 @@ public abstract class AuthorizationHandler
             String sslId = (String) request.getAttribute("javax.servlet.request.ssl_session");
             logger.debug("Parsing HTTP request: " + sslId + ":" + keySize.toString());
         } catch (Throwable th) {
-            logger.error(th.getMessage(), th);
+            logger.error("Cannot parse HTTP request: " + th.getMessage());
             throw getAuthorizationFault("Cannot parse HTTP request", msgContext);
         }
 
@@ -143,8 +143,7 @@ public abstract class AuthorizationHandler
             logger.info(this.getLogInfoString(dnRFC2253, vomsList, operation.toString(), remoteAddress, authorized));
 
         } catch (AuthorizationException authEx) {
-
-            logger.error(authEx.getMessage(), authEx);
+            logger.error("Authorization failure: " + authEx.getMessage());
             String fullError = "Authorization failure: " + authEx.getMessage();
             if (collector.size() > 0) {
                 fullError += "\n" + collector.toString();

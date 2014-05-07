@@ -74,7 +74,7 @@ public class ArgusPEP
             Class<?> mClass = Class.forName(mapClass);
             actionMap = (ActionMappingInterface) mClass.newInstance();
         } catch (Exception ex) {
-            logger.error("Cannot load mapping class", ex);
+            logger.error("Cannot load mapping class: " + ex.getMessage());
             throw new PEPClientException("Cannot load mapping class");
         }
 
@@ -232,7 +232,7 @@ public class ArgusPEP
             }
 
         } catch (Exception ex) {
-            logger.error(ex.getMessage(), ex);
+            logger.error(ex.getMessage());
             throw new AuthorizationException(ex.getMessage(), ex);
         }
 

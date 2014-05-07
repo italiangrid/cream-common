@@ -175,7 +175,7 @@ public class PEPConfigurationItem
             return res;
 
         } catch (Exception ex) {
-            logger.error(ex.getMessage(), ex);
+            logger.error(ex.getMessage());
             throw new RuntimeException(ex);
         }
     }
