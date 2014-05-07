@@ -232,7 +232,7 @@ public class ConfigurationManager
                 logger.debug("Parsing file " + xmlFile);
                 document = builder.parse(xmlFile);
             } catch (Exception ex) {
-                logger.error(ex.getMessage());
+                logger.error(ex.getMessage(), ex);
                 return;
             }
 
@@ -261,7 +261,7 @@ public class ConfigurationManager
                 }
 
             } catch (Exception ex) {
-                logger.error(ex.getMessage());
+                logger.error(ex.getMessage(), ex);
                 commitOK = false;
             }
 
@@ -275,7 +275,7 @@ public class ConfigurationManager
                         }
 
                     } catch (Exception ex) {
-                        logger.error(ex.getMessage());
+                        logger.error(ex.getMessage(), ex);
                         handler.disable();
                     }
 
@@ -317,7 +317,7 @@ public class ConfigurationManager
                             logger.debug("Rolledback " + handler.getCategory().getName());
                         }
                     } catch (Exception ex) {
-                        logger.error(ex.getMessage());
+                        logger.error(ex.getMessage(), ex);
                         handler.disable();
                     }
 
@@ -358,7 +358,7 @@ public class ConfigurationManager
                 }
 
             } catch (Exception ex) {
-                logger.error(ex.getMessage());
+                logger.error(ex.getMessage(), ex);
                 commitOK = false;
             }
 
@@ -380,7 +380,7 @@ public class ConfigurationManager
                         handler.enable();
 
                     } catch (Exception ex) {
-                        logger.error(ex.getMessage());
+                        logger.error(ex.getMessage(), ex);
                         handler.disable();
                     }
                 }
@@ -399,7 +399,7 @@ public class ConfigurationManager
                 ConfigurationEvent event = new ConfigurationEvent(cat, ts, type);
                 eventQueue.add(event);
             } catch (IllegalStateException illEx) {
-                logger.error("Cannot enqueue event: " + illEx.getMessage());
+                logger.error("Cannot enqueue event", illEx);
             }
         }
     }
@@ -455,7 +455,7 @@ public class ConfigurationManager
                             try {
                                 lsnr.notify(event);
                             } catch (Throwable th) {
-                                logger.error(th.getMessage());
+                                logger.error(th.getMessage(), th);
                             }
                         }
                         deadlockDetected = false;

@@ -196,7 +196,11 @@ public class LocalUserPIP
             }
             logger.debug("Created temporary proxy " + tmpFile.getAbsolutePath());
         } catch (Throwable th) {
-            logger.error("Cannot store proxy certificate: " + th.getMessage());
+            if (logger.isDebugEnabled()) {
+                logger.error("Cannot store proxy certificate", th);
+            } else {
+                logger.error("Cannot store proxy certificate: " + th.getMessage());
+            }
             throw new AuthorizationException("Cannot store proxy certificate");
         } finally {
             if (tmpFileWriter != null) {
@@ -221,7 +225,12 @@ public class LocalUserPIP
             logger.warn("Interrupted call to " + chmodCmd);
             retcod = -1;
         } catch (Exception ex) {
-            logger.error("Cannot set permissions to the store proxy certificate: " + ex.getMessage());
+            if (logger.isDebugEnabled()) {
+                logger.error("Cannot set permissions to the store proxy certificate", ex);
+
+            } else {
+                logger.error("Cannot set permissions to the store proxy certificate: " + ex.getMessage());
+            }
             retcod = -1;
         } finally {
             if (chmodProc != null) {
@@ -295,7 +304,11 @@ public class LocalUserPIP
             }
 
         } catch (Throwable th) {
-            logger.error(th.getMessage());
+            if (logger.isDebugEnabled()) {
+                logger.error(th.getMessage(), th);
+            } else {
+                logger.error(th.getMessage());
+            }
             failureDescr = th.getMessage();
         } finally {
             if (in != null) {

@@ -79,7 +79,11 @@ public class ServiceAuthorizationChain
         } catch (InitializeException initEx) {
             throw initEx;
         } catch (Exception e) {
-            logger.error("Cannot load interceptor chain: " + e.getMessage());
+            if (logger.isDebugEnabled()) {
+                logger.error("Cannot load interceptor chain", e);
+            } else {
+                logger.error("Cannot load interceptor chain: " + e.getMessage());
+            }
             throw new InitializeException("Cannot load interceptor chain", e);
         }
 
@@ -132,7 +136,11 @@ public class ServiceAuthorizationChain
             return true;
 
         } catch (Exception ex) {
-            logger.error("Authorization error: " + ex.getMessage());
+            if (logger.isDebugEnabled()) {
+                logger.error("Authorization error", ex);
+            } else {
+                logger.error("Authorization error: " + ex.getMessage());
+            }
             throw new AuthorizationException("Authorization error: " + ex.getMessage(), ex);
         }
 

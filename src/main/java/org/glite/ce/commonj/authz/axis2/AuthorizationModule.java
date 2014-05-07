@@ -65,7 +65,11 @@ public class AuthorizationModule
             vomsStore = new DefaultUpdatingVOMSTrustStore(localTrustDirs, updateFrequency);
 
         } catch (Exception ex) {
-            logger.error(ex.getMessage());
+            if (logger.isDebugEnabled()) {
+                logger.error(ex.getMessage(), ex);
+            } else {
+                logger.error(ex.getMessage());
+            }
             throw new RuntimeException("Cannot configure security support");
         }
 

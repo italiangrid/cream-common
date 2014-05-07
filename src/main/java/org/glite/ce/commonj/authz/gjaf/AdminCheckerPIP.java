@@ -145,7 +145,11 @@ public class AdminCheckerPIP
                 line = reader.readLine();
             }
         } catch (IOException ioEx) {
-            logger.error(ioEx.getMessage());
+            if (logger.isDebugEnabled()) {
+                logger.error(ioEx.getMessage(), ioEx);
+            } else {
+                logger.error(ioEx.getMessage());
+            }
             throw new InitializeException(ioEx.getMessage());
         } finally {
             if (reader != null) {

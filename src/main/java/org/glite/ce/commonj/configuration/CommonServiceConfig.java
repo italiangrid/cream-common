@@ -69,7 +69,11 @@ public class CommonServiceConfig {
 
             confManager = new ConfigurationManager(configFile.getCanonicalPath());
         } catch (IOException ex) {
-            logger.error("Wrong configuration file path: " + ex.getMessage());
+            if (logger.isDebugEnabled()) {
+                logger.error("Wrong configuration file path", ex);
+            } else {
+                logger.error("Wrong configuration file path: " + ex.getMessage());
+            }
             throw new CommonConfigException("Wrong configuration file path");
         }
 
@@ -256,7 +260,11 @@ public class CommonServiceConfig {
                         logger.debug("Created instance of " + commonConfiguration.getClass().getName());
 
                     } catch (Exception ex) {
-                        logger.error(ex.getMessage());
+                        if (logger.isDebugEnabled()) {
+                            logger.error(ex.getMessage(), ex);
+                        } else {
+                            logger.error(ex.getMessage());
+                        }
                     }
                 }
             }
