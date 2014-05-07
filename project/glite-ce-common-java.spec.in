@@ -99,7 +99,11 @@ Documentation files for the CREAM Common library
 %doc %{_javadocdir}/%{name}/html/org/glite/ce/commonj/configuration/xppm/class-use/*.html
 
 %changelog
-* Fri Jun 28 2013 CREAM group <cream-support@lists.infn.it> - @PKGVERSION@-@PKGRELEASE@
+* Fri May 30 2014 CREAM group <cream-support@lists.infn.it> - @PKGVERSION@-@PKGRELEASE@
+- Fixed bug https://issues.infn.it/jira/browse/CREAM-126
+- Fixed bug https://issues.infn.it/jira/browse/CREAM-144
+
+* Fri Jun 28 2013 CREAM group <cream-support@lists.infn.it> - 1.16.1-2
 - New major release
 
 
