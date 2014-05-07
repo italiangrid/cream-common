@@ -24,6 +24,7 @@
 
 package org.glite.ce.commonj.utils.pool;
 
+
 public interface Destroyable {
     public void destroy();
 }

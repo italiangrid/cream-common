@@ -24,6 +24,7 @@
 
 package org.glite.ce.commonj.utils.pool;
 
+
 public class GenericPoolException extends Exception {
 
     public GenericPoolException(String msg) {
