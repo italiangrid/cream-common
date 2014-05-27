@@ -58,11 +58,6 @@ if [ $1 -eq 0 ] ; then
  
 fi
 
-%triggerin -- canl-java
-#This workaround fixes the missing symlink in canl-java
-CANLJAR=`ls /usr/share/java/canl-*.jar | grep -E 'canl-[0-9]+\.[0-9]+\.[0-9]+'`
-ln -sf ${CANLJAR} /usr/share/java/canl.jar
-
 
 %files
 %defattr(-,root,root)
