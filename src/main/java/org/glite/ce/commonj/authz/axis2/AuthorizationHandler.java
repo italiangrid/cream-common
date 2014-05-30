@@ -119,6 +119,7 @@ public abstract class AuthorizationHandler
             throw getAuthorizationFault("Cannot recognize operation", msgContext);
         }
         logger.debug("Checking operation " + operation);
+        checkOperation(operation, msgContext);
 
         CommonServiceConfig commonConfig = CommonServiceConfig.getConfiguration();
         if (commonConfig == null) {
@@ -178,9 +179,11 @@ public abstract class AuthorizationHandler
         return operation.getName();
     }
 
-    protected abstract AxisFault getAuthorizationFault(String message, MessageContext context);
+    protected void checkOperation(QName operation, MessageContext context)
+        throws AxisFault {
+    }
 
-    // protected abstract CommonServiceConfig getCommonConfiguration();
+    protected abstract AxisFault getAuthorizationFault(String message, MessageContext context);
 
     private String getLogInfoString(String DN, List<VOMSAttribute> vomsAttrs, String operation, String address,
             boolean authorized) {
