@@ -4,7 +4,7 @@
   
   <groupId>org.glite.ce</groupId>
   <artifactId>cream-common</artifactId>
-  <version>1.16.3-SNAPSHOT</version>
+  <version>1.16.3</version>
   <packaging>jar</packaging>
 
   <properties>
