@@ -24,6 +24,7 @@
 
 package org.glite.ce.commonj.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -54,6 +55,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.axis2.context.MessageContext;
 import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.DERObject;
+import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.util.encoders.Base64;
 import org.glite.ce.commonj.authz.AuthZConstants;
 import org.italiangrid.voms.VOMSAttribute;
@@ -466,6 +470,44 @@ public class CEUtils {
          * see CAnL javadoc for any issue related to the conversion
          */
         return OpensslNameUtils.convertFromRfc2253(dn, false);
+    }
+
+    public static DERObject getDERObject(byte[] data)
+        throws IOException {
+        ByteArrayInputStream inStream = new ByteArrayInputStream(data);
+        ASN1InputStream DIS = new ASN1InputStream(inStream);
+        return DIS.readObject();
+    }
+
+    /*
+     * Check for extension specified in
+     * http://www.eugridpma.org/guidelines/robot/
+     */
+    public static boolean isRobot(X509Certificate[] userCertChain) {
+
+        try {
+            for (X509Certificate cert : userCertChain) {
+
+                byte[] data = cert.getExtensionValue("2.5.29.32");
+                if (data == null) {
+                    continue;
+                }
+
+                DERObject derPolicy = getDERObject(data);
+                if (derPolicy instanceof DEROctetString) {
+                    DEROctetString derOctetString = (DEROctetString) derPolicy;
+                    String policies = getDERObject(derOctetString.getOctets()).toString();
+                    if (policies.contains("1.2.840.113612.5.2.3.3.1")) {
+                        return true;
+                    }
+                }
+
+            }
+        } catch (IOException ioEx) {
+            logger.error(ioEx.getMessage(), ioEx);
+        }
+
+        return false;
     }
 
 }

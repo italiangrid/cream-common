@@ -40,6 +40,7 @@ import org.glite.ce.commonj.authz.AuthorizationException;
 import org.glite.ce.commonj.authz.ServiceAuthorizationInterface;
 import org.glite.ce.commonj.authz.VOMSResultCollector;
 import org.glite.ce.commonj.configuration.CommonServiceConfig;
+import org.glite.ce.commonj.utils.CEUtils;
 import org.italiangrid.voms.VOMSAttribute;
 import org.italiangrid.voms.VOMSValidators;
 import org.italiangrid.voms.ac.VOMSACValidator;
@@ -50,6 +51,8 @@ public abstract class AuthorizationHandler
     extends AbstractHandler {
 
     private static final Logger logger = Logger.getLogger(AuthorizationHandler.class.getName());
+
+    private static final Logger acctLogger = Logger.getLogger(AuthorizationHandler.class.getName() + ".Accounting");
 
     public AuthorizationHandler() {
         super();
@@ -145,7 +148,15 @@ public abstract class AuthorizationHandler
 
             authorized = authzBox.isPermitted(subject, new MessageContextWrapper(msgContext), operation);
 
-            logger.info(this.getLogInfoString(dnRFC2253, vomsList, operation.toString(), remoteAddress, authorized));
+            if (acctLogger.isInfoEnabled() && userCertChain.length > 0) {
+                String fullDN = userCertChain[0].getSubjectX500Principal().getName();
+
+                acctLogger.info(this.getLogInfoString(dnRFC2253, vomsList, operation.toString(), remoteAddress,
+                        authorized, fullDN, CEUtils.isRobot(userCertChain)));
+            }
+
+            logger.info(this.getLogInfoString(dnRFC2253, vomsList, operation.toString(), remoteAddress, authorized,
+                    null, false));
 
         } catch (AuthorizationException authEx) {
             if (logger.isDebugEnabled()) {
@@ -186,7 +197,7 @@ public abstract class AuthorizationHandler
     protected abstract AxisFault getAuthorizationFault(String message, MessageContext context);
 
     private String getLogInfoString(String DN, List<VOMSAttribute> vomsAttrs, String operation, String address,
-            boolean authorized) {
+            boolean authorized, String fullDN, boolean foundRobot) {
 
         StringBuffer buffer = new StringBuffer("request for OPERATION=");
         buffer.append(operation).append("; REMOTE_REQUEST_ADDRESS=").append(address);
@@ -199,6 +210,13 @@ public abstract class AuthorizationHandler
                 }
             }
             buffer.append("}; ");
+        }
+        if (fullDN != null) {
+            buffer.append("FULL_DN=").append(fullDN).append("; ");
+
+        }
+        if (foundRobot) {
+            buffer.append("FOUND_ROBOT; ");
         }
         if (authorized) {
             buffer.append(" AUTHORIZED");
