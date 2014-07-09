@@ -94,7 +94,8 @@ Documentation files for the CREAM Common library
 %doc %{_javadocdir}/%{name}/html/org/glite/ce/commonj/configuration/xppm/class-use/*.html
 
 %changelog
-* Mon Jun 30 2014 CREAM group <cream-support@lists.infn.it> - @PKGVERSION@-@PKGRELEASE@
+* Wed Jul 09 2014 CREAM group <cream-support@lists.infn.it> - @PKGVERSION@-@PKGRELEASE@
+- Resolved task https://issues.infn.it/jira/browse/CREAM-159
 - Removed trigger for canl-java
 - New check for limited proxy on submission
 
