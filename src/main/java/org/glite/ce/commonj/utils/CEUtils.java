@@ -46,6 +46,9 @@ import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Properties;
+import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -60,6 +63,7 @@ import org.bouncycastle.asn1.DERObject;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.util.encoders.Base64;
 import org.glite.ce.commonj.authz.AuthZConstants;
+import org.glite.ce.commonj.configuration.CommonServiceConfig;
 import org.italiangrid.voms.VOMSAttribute;
 
 import eu.emi.security.authn.x509.impl.OpensslNameUtils;
@@ -260,12 +264,44 @@ public class CEUtils {
     }
 
     public static String getUserDN_X500() {
-        String dn = (String) MessageContext.getCurrentMessageContext().getProperty(AuthZConstants.USERDN_RFC2253_LABEL);
-        if (dn == null) {
+        return getUserDN_X500(true);
+    }
+
+    public static String getUserDN_X500(boolean filterDN) {
+        MessageContext msgCtx = MessageContext.getCurrentMessageContext();
+        String baseDN = (String) msgCtx.getProperty(AuthZConstants.USERDN_RFC2253_LABEL);
+        if (baseDN == null) {
             return null;
         }
 
-        return convertDNfromRFC2253(dn);
+        CommonServiceConfig commonConfig = CommonServiceConfig.getConfiguration();
+        String tmps = commonConfig.getGlobalAttributeAsString("dn_filter", "").trim();
+
+        if (tmps.length() == 0 || !filterDN) {
+            return convertDNfromRFC2253(baseDN);
+        }
+
+        X509Certificate[] certChain = (X509Certificate[]) msgCtx.getProperty(AuthZConstants.USER_CERTCHAIN_LABEL);
+        String tmpDN = convertDNfromRFC2253(certChain[0].getSubjectX500Principal().getName());
+
+        StringTokenizer strtok = new StringTokenizer(tmps, "||");
+
+        while (strtok.hasMoreTokens()) {
+            String stregex = strtok.nextToken().trim();
+
+            if (stregex.length() == 0)
+                continue;
+
+            logger.debug("Trying match " + stregex + " against " + tmpDN);
+            Pattern pRegex = Pattern.compile(stregex);
+            Matcher mRegex = pRegex.matcher(tmpDN);
+            if (mRegex.find()) {
+                return tmpDN.substring(0, mRegex.end());
+            }
+        }
+
+        logger.debug("Cannot find match for " + tmpDN);
+        return convertDNfromRFC2253(baseDN);
     }
 
     public static boolean isAdmin() {
