@@ -1,5 +1,15 @@
-%global _tomcat %{?el6:tomcat6}%{!?el6:tomcat5}
-%global _tomcatclibdir %{?el6:/usr/share/java/tomcat6}%{!?el6:/var/lib/tomcat5/common/lib}
+%if 0%{?el6}
+%global _tomcat tomcat6
+%global _tomcatclibdir /usr/share/java/tomcat6
+%else
+%if 0%{?el5}
+%global _tomcat tomcat5
+%global _tomcatclibdir /var/lib/tomcat5/common/lib
+%else
+%global _tomcat tomcat
+%global _tomcatclibdir /usr/share/java/tomcat
+%endif
+%endif
 
 Summary: Common libraries for all services running on the CREAM CE
 Name: @PKGNAME@
@@ -35,7 +45,7 @@ mvn @MVNOPTS@ install
 mkdir -p %{buildroot}/usr/share/java
 cp %{_builddir}/%{name}-%{version}/target/cream-common-@PKGVERSION@.jar %{buildroot}/usr/share/java/glite-ce-common-java.jar
 mkdir -p %{buildroot}/%{_javadocdir}/%{name}
-ln -s %{_builddir}/%{name}-%{version}/target/apidocs %{buildroot}/%{_javadocdir}/%{name}/html
+mv %{_builddir}/%{name}-%{version}/target/apidocs %{buildroot}/%{_javadocdir}/%{name}/html
 
 %clean
 rm -rf %{buildroot} 
