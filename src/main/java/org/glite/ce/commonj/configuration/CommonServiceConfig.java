@@ -64,7 +64,7 @@ public class CommonServiceConfig {
             configFile = new File(configFilename);
 
             if (!configFile.isFile() || !configFile.canRead()) {
-                throw new CommonConfigException("Cannot read configuration file");
+                throw new CommonConfigException("Cannot read configuration file " + configFilename);
             }
 
             confManager = new ConfigurationManager(configFile.getCanonicalPath());
@@ -110,7 +110,7 @@ public class CommonServiceConfig {
             try {
                 return Integer.parseInt(attrs.get(name));
             } catch (Exception ex) {
-                logger.warn("Error parsing " + name + ": " + ex.getMessage() + "; used default");
+                logger.debug("Error parsing " + name + ": " + ex.getMessage() + "; used default");
             }
         }
 
@@ -125,7 +125,7 @@ public class CommonServiceConfig {
             try {
                 return Long.parseLong(attrs.get(name));
             } catch (Exception ex) {
-                logger.warn("Error parsing " + name + ": " + ex.getMessage() + "; used default");
+                logger.debug("Error parsing " + name + ": " + ex.getMessage() + "; used default");
             }
         }
 
