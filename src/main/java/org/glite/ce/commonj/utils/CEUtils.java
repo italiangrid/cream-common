@@ -59,7 +59,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.axis2.context.MessageContext;
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.DERObject;
+import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.util.encoders.Base64;
 import org.glite.ce.commonj.authz.AuthZConstants;
@@ -140,8 +140,8 @@ public class CEUtils {
 
     @SuppressWarnings("unchecked")
     public static List<VOMSAttribute> getVOMSAttributes() {
-        return (List<VOMSAttribute>) MessageContext.getCurrentMessageContext().getProperty(
-                AuthZConstants.USER_VOMSATTRS_LABEL);
+        return (List<VOMSAttribute>) MessageContext.getCurrentMessageContext()
+                .getProperty(AuthZConstants.USER_VOMSATTRS_LABEL);
     }
 
     public static String getLocalUser() {
@@ -235,8 +235,8 @@ public class CEUtils {
     }
 
     public static X509Certificate[] getUserCertChain() {
-        return (X509Certificate[]) MessageContext.getCurrentMessageContext().getProperty(
-                AuthZConstants.USER_CERTCHAIN_LABEL);
+        return (X509Certificate[]) MessageContext.getCurrentMessageContext()
+                .getProperty(AuthZConstants.USER_CERTCHAIN_LABEL);
     }
 
     public static String getUserDefaultVO() {
@@ -508,16 +508,17 @@ public class CEUtils {
         return OpensslNameUtils.convertFromRfc2253(dn, false);
     }
 
-    public static DERObject getDERObject(byte[] data)
+    public static ASN1Primitive getDERObject(byte[] data)
         throws IOException {
         ByteArrayInputStream inStream = new ByteArrayInputStream(data);
         ASN1InputStream DIS = new ASN1InputStream(inStream);
-        return DIS.readObject();
+        ASN1Primitive result = DIS.readObject();
+        DIS.close();
+        return result;
     }
 
     /*
-     * Check for extension specified in
-     * http://www.eugridpma.org/guidelines/robot/
+     * Check for extension specified in http://www.eugridpma.org/guidelines/robot/
      */
     public static boolean isRobot(X509Certificate[] userCertChain) {
 
@@ -529,7 +530,10 @@ public class CEUtils {
                     continue;
                 }
 
-                DERObject derPolicy = getDERObject(data);
+                /*
+                 * TODO check double call
+                 */
+                ASN1Primitive derPolicy = getDERObject(data);
                 if (derPolicy instanceof DEROctetString) {
                     DEROctetString derOctetString = (DEROctetString) derPolicy;
                     String policies = getDERObject(derOctetString.getOctets()).toString();
