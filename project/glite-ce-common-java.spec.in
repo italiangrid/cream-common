@@ -1,33 +1,26 @@
 %if 0%{?el6}
 %global _tomcat tomcat6
 %global _tomcatclibdir /usr/share/java/tomcat6
-%global _vomsapi voms-api-java3
-%else
-%if 0%{?el5}
-%global _tomcat tomcat5
-%global _tomcatclibdir /var/lib/tomcat5/common/lib
-%global _vomsapi voms-api-java3
+%global _bouncycastle bouncycastle1.58
 %else
 %global _tomcat tomcat
 %global _tomcatclibdir /usr/share/java/tomcat
-%global _vomsapi voms-api-java
-%endif
+%global _bouncycastle bouncycastle
 %endif
 
 Summary: Common libraries for all services running on the CREAM CE
 Name: @PKGNAME@
 Version: @PKGVERSION@
-Release: @PKGRELEASE@%{?dist}%{!?dist:.el5}
+Release: @PKGRELEASE@%{?dist}
 License: Apache Software License
 Vendor: EMI
 URL: http://glite.cern.ch/
 Group: System Environment/Libraries
 BuildArch: noarch
 BuildRequires: maven
-Requires: axis2, bouncycastle 
-Requires: %{_tomcat}
+Requires: axis2, %{_bouncycastle}, %{_tomcat}
 Requires: argus-pep-common, argus-pep-api-java
-Requires: canl-java, %{_vomsapi}, jclassads, mysql-connector-java
+Requires: canl-java, voms-api-java, jclassads, mysql-connector-java
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReqProv: yes
 Source: %{name}.tar.gz
